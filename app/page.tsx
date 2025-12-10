@@ -16,7 +16,7 @@ export default function Home() {
         <div className="absolute  bg-[#0e00006b] w-full h-full py-[4em]"></div>
         <div className="absolute grid place-items-center w-full h-full">
           <div className="w-[90%] md:w-[80%]">
-            <h1 className="text-[2.2em] md:text-[3em] lg:text-[3.5em] xl:text-[4em] font-semibold text-white leading-[1.2em] text-shadow-lg/50 font-montserrat">
+            <h1 className="text-[2.2em] md:text-[3em] lg:text-[3.5em] xl:text-[4em] font-semibold text-white leading-[1.2em] text-shadow-lg/5 font-montserrat">
               Ife Architecture <br></br>Alumni Association
             </h1>
             <p className="text-gray-100/80 mt-4 mb-3 md:leading-7 text-[0.9em] md:text-lg max-md:mt-5 max-md:mb-3.5">
