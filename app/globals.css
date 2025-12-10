@@ -2,11 +2,12 @@
 
 
 @theme {
-  --color-primary: #c20723;
+  --color-primary: #c5122d;
 }
 
 :root {
   overflow-x: hidden;
+
 }
 
 .font-montserrat {
