@@ -7,7 +7,7 @@ import NewsCard from "./components/Homepage/NewsCard";
 
 export default function Home() {
   return (
-    <main className="grid bg-[#f7f7f7] overflow-x-hidden">
+    <main className="grid bg-[#f7f7f7] overflow-x-hidden mt-[-1em]">
       {/* Hero Section */}
       <section className="relative grid h-max">
         <Image
@@ -67,7 +67,7 @@ export default function Home() {
           <h2 className="text-xl sm:text-2xl font-semibold mb-3">
             Our Mission
           </h2>
-          <p className="text-gray-600 leading-relaxed text-sm sm:text-base">
+          <p className="text-gray-600 leading-relaxed text-[1em] sm:text-base">
             The Ife Architecture Alumni Association exists to foster lifelong
             connections among graduates, support current students through
             mentorship, promote professional growth, and contribute to the
@@ -114,7 +114,65 @@ export default function Home() {
         </div>
       </section>
 
+
+      {/* Featured Opportunities */}
+<section className="w-[92%] sm:w-[90%] md:w-[80%] mx-auto my-[3em] sm:my-[4em]">
+  <h2 className="text-center text-xl sm:text-2xl font-semibold mb-5 sm:mb-6">
+    Featured Opportunities
+  </h2>
+
+  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
+    <NewsCard
+            title="Graduate Architecture Scholarship"
+            date="Jan 2026"
+            excerpt="Fully funded postgraduate scholarship for architecture graduates pursuing sustainable design research."
+            containerClassName="bg-white shadow-xl border border-gray-500/30"
+            tag={"Scholarship"}
+            image="https://picsum.photos/seed/alumni-event/800/600"
+          />
+
+    <NewsCard
+            title="Junior Architect – Lagos Studio"
+            date="Jan 2026"
+            excerpt="Architecture firm seeking a talented junior architect with strong Revit and design visualization skills."
+            containerClassName="bg-white shadow-xl border border-gray-500/30"
+            tag={"Job"}
+            image="https://picsum.photos/seed/alumni-job/800/600"
+          />
+
+    <NewsCard
+
+              title="Urban Innovation Fellowship"
+              date="Jan 2026"
+              excerpt="A global fellowship program supporting young architects working on urban sustainability solutions."
+              containerClassName="bg-white shadow-xl border border-gray-500/30"
+              tag={"Fellowship"}
+              image="https://picsum.photos/seed/alumni-fellowship/800/600"
+            />
+  
+
+    
+
+
+    
+
+
+    
+
+  </div>
+
+  <div className="text-center mt-6">
+    <Link
+      href="/opportunities"
+      className="text-primary font-medium hover:underline"
+    >
+      View all opportunities →
+    </Link>
+  </div>
+</section>
+
       {/* Alumni Spotlight */}
+    <section className="w-full bg-white">
       <section className="w-[92%] sm:w-[90%] md:w-[80%] mx-auto my-[3em] sm:my-[4em]">
         <h2 className="text-center text-xl sm:text-2xl font-semibold mb-5 sm:mb-6">
           Alumni Spotlight
@@ -138,9 +196,10 @@ export default function Home() {
           />
         </div>
       </section>
+    </section>
 
       {/* News / Updates */}
-      <section className="w-full bg-white py-[3em] sm:py-[4em]">
+      <section className="w-full bg-gray-50 py-[3em] sm:py-[4em] mb-[4em]">
         <h2 className="text-center text-xl sm:text-2xl font-semibold mb-5 sm:mb-6">
           Latest News & Updates
         </h2>
@@ -150,16 +209,19 @@ export default function Home() {
             title="New Alumni Executive Council Announced"
             date="Jan 2026"
             excerpt="Meet the newly elected alumni leaders for the 2026–2028 term."
+            containerClassName="bg-white shadow-xl"
           />
           <NewsCard
             title="Ife Architecture Alumni Donate Studio Equipment"
             date="Dec 2025"
             excerpt="Alumni contribute new drafting tools and computers to the department."
+            containerClassName="bg-white shadow-xl"
           />
           <NewsCard
             title="Mentorship Program Launches"
             date="Nov 2025"
             excerpt="Alumni mentors now paired with final-year students."
+            containerClassName="bg-white shadow-xl"
           />
         </div>
       </section>

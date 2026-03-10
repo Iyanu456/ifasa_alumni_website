@@ -1,9 +1,15 @@
+"use client"
 import Link from "next/link";
 import { Mail, Phone, MapPin } from "lucide-react";
+import { usePathname } from "next/navigation";
 
 export default function Footer() {
+  const pathname = usePathname();
+  const isAdminRoute = pathname.startsWith("/admin");
+
+  
   return (
-    <footer className="bg-[#0f0f0f] text-gray-300 mb-0 mt-auto">
+    !isAdminRoute ? <footer className="bg-[#0f0f0f] text-gray-300 mb-0 mt-auto">
       <div className="w-[92%] sm:w-[90%] md:w-[80%] mx-auto py-12 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
         {/* Brand */}
         <div>
@@ -97,6 +103,6 @@ export default function Footer() {
           </div>
         </div>
       </div>
-    </footer>
+    </footer> : null
   );
 }

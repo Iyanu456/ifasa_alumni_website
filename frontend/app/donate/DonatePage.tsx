@@ -119,7 +119,7 @@ export default function DonatePage() {
     </form>
 
     <p className="text-xs text-gray-500 mt-3">
-      Secure payment processing.
+      Secure payment by Paystack.
     </p>
   </div>
 
@@ -169,7 +169,7 @@ export default function DonatePage() {
       </button>
 
       <p className="text-xs text-gray-500 mt-3">
-      Secure payment processing.
+      Secure payment by Paystack.
     </p>
     </form>
   </div>

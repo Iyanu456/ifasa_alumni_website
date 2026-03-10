@@ -1,0 +1,9 @@
+{
+  "watch": ["api"],
+  "ignore": [
+    "logs/*",
+    "backups/*",
+    "*.log"
+  ],
+  "ext": "js,json"
+}

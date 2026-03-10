@@ -84,7 +84,7 @@ export default function RegisterPage() {
     <section className="w-full mb-16">
       {/* Header */}
       <div className="w-[90%] mx-auto bg-[#F7E3C8] mt-6 rounded-2xl pt-8 pb-[15em] px-6 text-center">
-        <div className="w-[95%] lg:w-[80%] mx-auto">
+        {/*<div className="w-[95%] lg:w-[80%] mx-auto">
           <Link
             href="/"
             className="flex items-center text-sm font-medium text-gray-700 hover:text-black"
@@ -92,7 +92,7 @@ export default function RegisterPage() {
             <ArrowLeft size={18} className="mr-2" />
             Back to home
           </Link>
-        </div>
+        </div>*/}
 
         <h1 className="mt-[1em] text-lg md:text-4xl font-semibold text-gray-900 mb-3 font-montserrat">
           Join the Alumni Network
