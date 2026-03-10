@@ -40,7 +40,7 @@ export default function EventsTab() {
         onSubmit={handleSubmit}
         className="bg-white border border-gray-100 rounded-xl p-6 space-y-6"
       >
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid md:grid-cols-2 gap-4">
         {/* Title */}
         <div>
           <label className="block text-sm font-medium mb-2">

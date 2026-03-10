@@ -90,8 +90,8 @@ export default function AdminSidebar({ setSidebarClose }: { setSidebarClose?: ()
       </nav>
 
       {/* Bottom */}
-      <div className="p-3 border-t border-gray-100 space-y-2 mb-[2em] mt-auto">
-        <Link href={`/admin?tab=settings`} className={`flex items-center gap-3 p-3 rounded-lg transition
+      <div className="p-3 border-t border-gray-100 space-y-2 max-md:mb-[4em] mb-[2em] mt-auto">
+        <Link onClick={setSidebarClose} href={`/admin?tab=settings`} className={`flex items-center gap-3 p-3 rounded-lg transition
                 ${
                   activeTab === "settings"
                     ? "bg-primary text-white"

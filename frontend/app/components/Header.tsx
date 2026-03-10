@@ -82,7 +82,7 @@ export default function Header() {
 
         <header className="py-6 flex justify-between items-center w-[90vw] md:max-w-[90vw] lg:max-w-[80vw] mx-auto">
           {/* Logo */}
-          {isAdminRoute ? isAdminLogin ? (
+          {!isAdminLogin && isAdminRoute && (
             <Link href="/">
               <Image
                 unoptimized
@@ -90,9 +90,9 @@ export default function Header() {
                 alt="ife alumni logo"
                 height={200}
               width={200}
-              className="max-md:w-[150px] md:max-w-[150px] md:pt-2 lg:pt-0 lg:max-w-[180px]"
+              className="max-md:w-[150px] md:max-w-[150px] md:pt-2 lg:pt-0 lg:max-w-[180px] lg:hidden"
             />
-          </Link>) : null : null}
+          </Link>)}
 
           {!isAdminRoute && !isAdminLogin && (
             <Link href="/">

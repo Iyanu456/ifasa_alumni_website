@@ -69,7 +69,7 @@ return ( <section className="space-y-6">
   <div className="flex items-center justify-between">
     <div>
       <h1 className="text-2xl font-semibold">News</h1>
-      <p className="text-sm text-gray-500 max-md:w-[90%] pt-1">
+      <p className="text-sm text-gray-500 max-md:w-[85%] pt-1">
         Publish announcements and updates for alumni.
       </p>
     </div>
@@ -112,7 +112,7 @@ return ( <section className="space-y-6">
             <th className="text-left p-4 font-medium max-md:hidden">Tags</th>
             <th className="text-left p-4 font-medium">Date</th>
             <th className="text-left p-4 font-medium">Status</th>
-            <th className="text-right p-4 font-medium"></th>
+            <th className="text-right p-4 font-medium max-md:hidden"></th>
           </tr>
         </thead>
 
@@ -174,7 +174,7 @@ return ( <section className="space-y-6">
               </td>
 
               {/* Actions */}
-              <td className="p-4 text-right relative">
+              <td className="p-4 text-right relative max-md:hidden">
 
                 <button
                   onClick={(e) => {

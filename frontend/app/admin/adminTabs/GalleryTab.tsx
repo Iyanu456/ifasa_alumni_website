@@ -49,7 +49,7 @@ return ( <section className="space-y-6">
   <div className="flex items-center justify-between">
     <div>
       <h1 className="text-2xl font-semibold">Gallery</h1>
-      <p className="text-sm text-gray-500">
+      <p className="text-sm text-gray-500 max-md:max-w-[85vw]">
         Upload and manage alumni event photos.
       </p>
     </div>
