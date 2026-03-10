@@ -145,12 +145,13 @@ export default function Header() {
       )}
       
       
-      <aside
-        className={`md:hidden fixed top-0 left-0 h-screen w-[260px] z-50 max-md:flex flex-col transition-transform duration-300 ${
-          isMenuOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
-      >
-        {/* Sidebar Header */}
+      {isAdminRoute && (
+        <aside
+          className={`md:hidden fixed top-0 left-0 h-screen w-[260px] z-50 max-md:flex flex-col transition-transform duration-300 ${
+            isMenuOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
+        >
+          {/* Sidebar Header */}
        
 
           {/*<button onClick={() => setIsSidebarOpen(false)}>
@@ -162,7 +163,7 @@ export default function Header() {
         <AdminSidebar setSidebarClose={() => setIsMenuOpen(false)}/>
 
      
-      </aside> 
+      </aside> )}
 
       {isMenuOpen && !isAdminRoute &&
       
