@@ -39,7 +39,7 @@ return (
   <>
   {/* Header */}
   <div className="">
-    <h1 className="text-2xl font-semibold">
+    <h1 className="text-lg md:text-2xl font-semibold">
       Settings
     </h1>
 

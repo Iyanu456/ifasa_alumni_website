@@ -30,7 +30,7 @@ export default function EventsTab() {
 
       {/* Page Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-semibold">Create Event</h1>
+        <h1 className="text-lg md:text-2xl font-semibold">Create Event</h1>
         <p className="text-sm text-gray-500">
           Add a new event for alumni and students.
         </p>

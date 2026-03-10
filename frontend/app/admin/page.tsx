@@ -23,7 +23,7 @@ export default function AdminPage() {
         <div className="max-md:-translate-x-full duration-100 transition ease-in block fixed top-[-1em] z-[2000]">
           <AdminSidebar />  
         </div>
-        <div className="grid md:pl-[16em] pr-5 pb-[2em] max-md:p-4 ">
+        <div className="grid md:pl-[16em] pr-5 pb-[2em] max-md:p-3.5 ">
           <AlumniTab />
         </div>
         
@@ -35,7 +35,7 @@ export default function AdminPage() {
         <div className="max-md:-translate-x-full duration-100 transition ease-in  block fixed top-[-1em] z-[2000]">
           <AdminSidebar />  
         </div>
-        <div className="grid md:pl-[16em] pr-5 pb-[2em] max-md:p-4 "><EventsTab /></div>
+        <div className="grid md:pl-[16em] pr-5 pb-[2em] max-md:p-3.5 "><EventsTab /></div>
       
       </div>);
 
@@ -45,7 +45,7 @@ export default function AdminPage() {
         <div className="max-md:-translate-x-full duration-100 transition ease-in  block fixed top-[-1em] z-[2000]">
           <AdminSidebar />  
         </div>
-        <div className="grid md:pl-[16em] pr-5 pb-[2em] max-md:p-4 "><OpportunitiesTab /></div>
+        <div className="grid md:pl-[16em] pr-5 pb-[2em] max-md:p-3.5 "><OpportunitiesTab /></div>
       </div>);
 
     case "news":
@@ -54,7 +54,7 @@ export default function AdminPage() {
         <div className="max-md:-translate-x-full duration-100 transition ease-in  fixed top-[-1em] z-[2000]">
           <AdminSidebar />  
         </div>
-        <div className="grid md:pl-[16em] pr-5 pb-[2em] max-md:p-4 ">
+        <div className="grid md:pl-[16em] pr-5 pb-[2em] max-md:p-3.5 ">
           <NewsTab />
         </div>
         
@@ -66,7 +66,7 @@ export default function AdminPage() {
         <div className="max-md:-translate-x-full duration-100 transition ease-in  block fixed top-[-1em] z-[2000]">
           <AdminSidebar />  
         </div>
-        <div className="grid md:pl-[16em] pr-5 pb-[2em] max-md:p-4 ">
+        <div className="grid md:pl-[16em] pr-5 pb-[2em] max-md:p-3.5 ">
           <GalleryTab />
         </div>
         
@@ -78,7 +78,7 @@ export default function AdminPage() {
         <div className="max-md:-translate-x-full duration-100 transition ease-in block fixed top-[-1em] z-[2000]">
           <AdminSidebar />  
         </div>
-        <div className="grid md:pl-[16em] pr-5 pb-[2em] max-md:p-4  ">
+        <div className="grid md:pl-[16em] pr-5 pb-[2em] max-md:p-3.5 ">
           <DonationsTab />
         </div>
         
@@ -91,7 +91,7 @@ export default function AdminPage() {
         <div className="max-md:-translate-x-full duration-100 transition ease-in block fixed top-[-1em] z-[2000]">
           <AdminSidebar />  
         </div>
-        <div className="grid md:pl-[16em] pr-5 pb-[2em] max-md:p-4  ">
+        <div className="grid md:pl-[16em] pr-5 pb-[2em] max-md:p-3.5  ">
           <SettingsTab />
         </div>
       </div>);

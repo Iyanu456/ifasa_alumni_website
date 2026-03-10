@@ -48,7 +48,7 @@ return ( <section className="space-y-6">
   {/* Header */}
   <div className="flex items-center justify-between">
     <div>
-      <h1 className="text-2xl font-semibold">Gallery</h1>
+      <h1 className="text-lg md:text-2xl font-semibold">Gallery</h1>
       <p className="text-sm text-gray-500 max-md:max-w-[85vw]">
         Upload and manage alumni event photos.
       </p>
@@ -56,10 +56,10 @@ return ( <section className="space-y-6">
 
     <button
       onClick={() => setShowModal(true)}
-      className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg text-sm hover:opacity-90"
+      className="max-md:text-sm flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg text-sm hover:opacity-90"
     >
       <Plus size={16} />
-      Upload Photo
+      Upload
     </button>
   </div>
 

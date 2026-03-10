@@ -62,7 +62,7 @@ return ( <section className="space-y-6">
 
   {/* Header */}
   <div>
-    <h1 className="text-2xl font-semibold">Donations</h1>
+    <h1 className="text-lg md:text-2xl font-semibold">Donations</h1>
     <p className="text-sm text-gray-500">
       Track alumni donations and contributions.
     </p>

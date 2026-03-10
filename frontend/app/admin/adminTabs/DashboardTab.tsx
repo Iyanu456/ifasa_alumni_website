@@ -40,7 +40,7 @@ export default function AdminDashboard() {
       {/* Page Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold">Admin Dashboard</h1>
+          <h1 className="text-lg md:text-2xl font-semibold">Admin Dashboard</h1>
           <p className="text-sm text-gray-500">
             Manage alumni, events, and opportunities from here.
           </p>
