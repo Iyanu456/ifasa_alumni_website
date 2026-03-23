@@ -27,7 +27,7 @@ const getTransporter = () => {
       __transportType: "resend",
       sendMail: async ({ from, to, subject, html, text }) => {
         const response = await resend.emails.send({
-          from: env.resendEmailFrom,
+          from: `${env.resendSenderName} ${env.resendEmailFrom}`,
           to,
           subject,
           html,
