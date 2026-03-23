@@ -59,7 +59,7 @@ const env = Object.freeze({
   jwtSecret:
     process.env.JWT_SECRET || "development-jwt-secret-change-me-in-production",
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || "7d",
-  clientUrl: process.env.CLIENT_URL || "http://localhost:3000",
+  clientUrl: process.env.CLIENT_URL,
   serverUrl: process.env.SERVER_URL || `http://localhost:${port}`,
   corsOrigins: toArray(
     process.env.CORS_ORIGIN || process.env.CLIENT_URL || "http://localhost:3000",
