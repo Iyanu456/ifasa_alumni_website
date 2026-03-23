@@ -8,6 +8,8 @@ export const AUTH_ENDPOINTS = {
   GOOGLE_INITIATE: `${API_V1}/auth/google/initiate`,
   GOOGLE_CALLBACK: `${API_V1}/auth/google/callback`,
   RESEND_VERIFICATION: `${API_V1}/auth/resend-verification`,
+  FORGOT_PASSWORD: `${API_V1}/auth/forgot-password`,
+  RESET_PASSWORD: (token: string) => `${API_V1}/auth/reset-password/${token}`,
   VERIFY_EMAIL: (token: string) => `${API_V1}/auth/verify-email/${token}`,
   ME: `${API_V1}/auth/me`,
   PROFILE: `${API_V1}/users/profile`,
@@ -69,6 +71,12 @@ export const INQUIRY_ENDPOINTS = {
 export const SETTINGS_ENDPOINTS = {
   PUBLIC: `${API_V1}/settings/public`,
   ADMIN: `${API_V1}/settings`,
+};
+
+export const EXECUTIVE_ENDPOINTS = {
+  PUBLIC: `${API_V1}/executives`,
+  ADMIN: `${API_V1}/executives/admin`,
+  DETAIL: (id: string) => `${API_V1}/executives/${id}`,
 };
 
 export const ADMIN_ENDPOINTS = {

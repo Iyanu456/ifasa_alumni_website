@@ -14,6 +14,26 @@ export const adminAlumniQueryValidation = [
   query("isProfileComplete").optional().isBoolean(),
 ];
 
+export const createAlumniValidation = [
+  body("fullName").trim().isLength({ min: 2, max: 120 }),
+  body("email").isEmail().normalizeEmail(),
+  body("password").isLength({ min: 8 }),
+  body("phone").trim().isLength({ min: 5, max: 30 }),
+  body("graduationYear").trim().notEmpty(),
+  body("degree").trim().notEmpty(),
+  body("specialization").optional().trim().isLength({ max: 120 }),
+  body("currentRole").optional().trim().isLength({ max: 120 }),
+  body("company").optional().trim().isLength({ max: 120 }),
+  body("location").optional().trim().isLength({ max: 120 }),
+  body("bio").optional().trim().isLength({ max: 1000 }),
+  body("status").optional().isIn(["pending", "approved"]),
+  body("associationRoleTitle").optional().trim().isLength({ max: 120 }),
+  body("spotlightQuote").optional().trim().isLength({ max: 500 }),
+  body("isMentorAvailable").optional().isBoolean(),
+  body("isSpotlight").optional().isBoolean(),
+  body("consent").optional().isBoolean(),
+];
+
 export const updateAlumniValidation = [
   body("fullName").optional().trim().isLength({ min: 2, max: 120 }),
   body("phone").optional().trim().isLength({ min: 5, max: 30 }),

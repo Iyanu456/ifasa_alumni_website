@@ -8,7 +8,9 @@ import {
   getCurrentUserProfile,
   getGoogleAuthInitiation,
   loginUser,
+  requestPasswordReset,
   registerUser,
+  resetPassword,
   resendVerificationEmail,
   verifyUserEmail,
 } from "../services/auth.service.js";
@@ -38,6 +40,24 @@ export const resendVerification = asyncHandler(async (req, res) => {
 
   return sendSuccess(res, {
     message: "Verification email sent successfully.",
+    data: result,
+  });
+});
+
+export const forgotPassword = asyncHandler(async (req, res) => {
+  const result = await requestPasswordReset(req.body.email);
+
+  return sendSuccess(res, {
+    message: "If the account exists, a password reset email has been sent.",
+    data: result,
+  });
+});
+
+export const resetPasswordController = asyncHandler(async (req, res) => {
+  const result = await resetPassword(req.params.token, req.body.password);
+
+  return sendSuccess(res, {
+    message: "Password reset successfully.",
     data: result,
   });
 });

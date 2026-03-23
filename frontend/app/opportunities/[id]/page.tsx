@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Building, Calendar, MapPin } from "lucide-react";
 import { useOpportunityQuery } from "../../apiServices/queries";
-import { formatDate } from "../../lib/formatters";
+import { buildContentFallbackImage, formatDate } from "../../lib/formatters";
 
 export default function OpportunityDetailsPage() {
   const params = useParams<{ id: string }>();
@@ -38,17 +38,18 @@ export default function OpportunityDetailsPage() {
           </div>
         ) : (
           <>
-            {opportunity.coverImageUrl ? (
-              <div className="relative mb-6 h-[250px] w-full overflow-hidden rounded-xl sm:h-[320px] md:h-[380px]">
-                <Image
-                  src={opportunity.coverImageUrl}
-                  alt={opportunity.title}
-                  fill
-                  className="object-cover"
-                  unoptimized
-                />
-              </div>
-            ) : null}
+            <div className="relative mb-6 h-[250px] w-full overflow-hidden rounded-xl sm:h-[320px] md:h-[380px]">
+              <Image
+                src={
+                  opportunity.coverImageUrl ||
+                  buildContentFallbackImage("opportunity", opportunity.title)
+                }
+                alt={opportunity.title}
+                fill
+                className="object-cover"
+                unoptimized
+              />
+            </div>
 
             <span className="rounded-full bg-primary/10 px-2 py-1 text-xs text-primary">
               {opportunity.category}

@@ -1,8 +1,10 @@
 import { sendSuccess } from "../utils/response.js";
 import { asyncHandler } from "../utils/async-handler.js";
+import { buildFileUrl } from "../utils/file.js";
 import { parseBoolean } from "../utils/parsers.js";
 import {
   approveAlumnus,
+  createAlumnus,
   deleteAlumnus,
   getAdminAlumnus,
   getPublicAlumnus,
@@ -30,6 +32,9 @@ const buildUserUpdatePayload = (body) => ({
   spotlightQuote: body.spotlightQuote,
   isMentorAvailable: parseBoolean(body.isMentorAvailable),
   isSpotlight: parseBoolean(body.isSpotlight),
+  consent: parseBoolean(body.consent, true),
+  email: body.email,
+  password: body.password,
 });
 
 const buildSelfProfilePayload = (body) => ({
@@ -74,6 +79,18 @@ export const getAdminAlumniList = asyncHandler(async (req, res) => {
     message: "Admin alumni list fetched successfully.",
     data: result.documents,
     meta: result.pagination,
+  });
+});
+
+export const createAlumnusByAdmin = asyncHandler(async (req, res) => {
+  const alumnus = await createAlumnus(buildUserUpdatePayload(req.body), req.user);
+
+  return sendSuccess(res, {
+    statusCode: 201,
+    message: "Alumnus created successfully.",
+    data: {
+      alumnus,
+    },
   });
 });
 
@@ -149,9 +166,15 @@ export const getOwnProfileController = asyncHandler(async (req, res) => {
 });
 
 export const upsertOwnProfileController = asyncHandler(async (req, res) => {
+  const payload = buildSelfProfilePayload(req.body);
+
+  if (req.file) {
+    payload.avatarUrl = buildFileUrl(req, req.file);
+  }
+
   const user = await upsertOwnProfile(
     req.user._id,
-    buildSelfProfilePayload(req.body),
+    payload,
     req.user,
   );
 

@@ -7,6 +7,7 @@ import AdminSidebar from "./components/AdminSidebar";
 import AlumniTab from "./adminTabs/AlumniTab";
 import DashboardTab from "./adminTabs/DashboardTab";
 import DonationsTab from "./adminTabs/DonationsTab";
+import ExecutivesTab from "./adminTabs/ExecutivesTab";
 import EventsTab from "./adminTabs/EventsTab";
 import GalleryTab from "./adminTabs/GalleryTab";
 import NewsTab from "./adminTabs/NewsTab";
@@ -20,6 +21,7 @@ const tabComponents: Record<string, ComponentType> = {
   dashboard: DashboardTab,
   alumni: AlumniTab,
   events: EventsTab,
+  executives: ExecutivesTab,
   opportunities: OpportunitiesTab,
   news: NewsTab,
   gallery: GalleryTab,
@@ -37,6 +39,7 @@ export default function AdminPage() {
   const tab = searchParams.get("tab") || "dashboard";
   const profileQuery = useOwnProfileQuery(Boolean(token));
   const ActiveTab = tabComponents[tab] || DashboardTab;
+  const closeSidebar = () => undefined;
 
   useEffect(() => {
     if (!token) {
@@ -75,9 +78,7 @@ export default function AdminPage() {
   return (
     <div className="h-[89vh] md:mt-[-2em]">
       <div className="fixed top-[-1em] z-[2000] block transition duration-100 ease-in max-md:-translate-x-full">
-        <AdminSidebar setSidebarClose={function (): void {
-          throw new Error("Function not implemented.");
-        } } />
+        <AdminSidebar setSidebarClose={closeSidebar} />
       </div>
 
       <div className="grid pb-[2em] pt-[3em] pr-5 max-md:p-4 md:pl-[16em]">

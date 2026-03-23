@@ -1,6 +1,20 @@
 import { body, query } from "express-validator";
 import { paginationValidation } from "./common.validator.js";
 
+const isFutureDate = (value) => {
+  const parsed = new Date(value);
+
+  if (Number.isNaN(parsed.getTime())) {
+    throw new Error("Valid date is required.");
+  }
+
+  if (parsed.getTime() <= Date.now()) {
+    throw new Error("Date must be in the future.");
+  }
+
+  return true;
+};
+
 export const eventQueryValidation = [
   ...paginationValidation,
   query("category").optional().isString().trim(),
@@ -23,7 +37,11 @@ export const createEventValidation = [
       "Reunion",
       "Other",
     ]),
-  body("date").isISO8601().withMessage("Valid event date is required."),
+  body("date")
+    .isISO8601()
+    .withMessage("Valid event date is required.")
+    .bail()
+    .custom(isFutureDate),
   body("location").trim().isLength({ min: 2, max: 160 }),
   body("description").trim().isLength({ min: 10, max: 4000 }),
   body("registrationLink").optional().isURL(),
@@ -47,7 +65,7 @@ export const updateEventValidation = [
       "Reunion",
       "Other",
     ]),
-  body("date").optional().isISO8601(),
+  body("date").optional().isISO8601().bail().custom(isFutureDate),
   body("location").optional().trim().isLength({ min: 2, max: 160 }),
   body("description").optional().trim().isLength({ min: 10, max: 4000 }),
   body("registrationLink").optional().isURL(),
@@ -79,7 +97,7 @@ export const createOpportunityValidation = [
     ]),
   body("description").trim().isLength({ min: 10, max: 4000 }),
   body("location").optional().trim().isLength({ max: 160 }),
-  body("deadline").optional().isISO8601(),
+  body("deadline").optional().isISO8601().bail().custom(isFutureDate),
   body("applicationLink").optional().isURL(),
   body("link").optional().isURL(),
   body("status").optional().isIn(["open", "closed"]),
@@ -103,7 +121,7 @@ export const updateOpportunityValidation = [
     ]),
   body("description").optional().trim().isLength({ min: 10, max: 4000 }),
   body("location").optional().trim().isLength({ max: 160 }),
-  body("deadline").optional().isISO8601(),
+  body("deadline").optional().isISO8601().bail().custom(isFutureDate),
   body("applicationLink").optional().isURL(),
   body("link").optional().isURL(),
   body("status").optional().isIn(["open", "closed"]),

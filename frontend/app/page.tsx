@@ -7,7 +7,7 @@ import StatCard from "./components/Homepage/StatsCard";
 import AlumniSpotlight from "./components/Homepage/AlumniSpotlight";
 import NewsCard from "./components/Homepage/NewsCard";
 import { useHomeDashboardQuery } from "./apiServices/queries";
-import { formatDate } from "./lib/formatters";
+import { buildContentFallbackImage, formatDate } from "./lib/formatters";
 
 export default function Home() {
   const { data, isLoading, isError } = useHomeDashboardQuery();
@@ -57,7 +57,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="w-[92%] sm:w-[90%] md:w-[80%] mx-auto -mt-[2.5em] sm:-mt-[3em] relative z-10">
+      {/*<section className="w-[92%] sm:w-[90%] md:w-[80%] mx-auto -mt-[2.5em] sm:-mt-[3em] relative z-10">
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 bg-white rounded-2xl shadow-lg p-4 sm:p-6">
           <StatCard
             label="Registered Alumni"
@@ -76,7 +76,7 @@ export default function Home() {
             value={isLoading ? "..." : String(dashboard?.stats.activeEvents ?? 0)}
           />
         </div>
-      </section>
+      </section>*/}
 
       <section className="w-[92%] sm:w-[90%] md:w-[70%] mx-auto pt-[2em] mb-[2em] sm:my-[4em] grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-10 items-center">
         <div>
@@ -121,8 +121,8 @@ export default function Home() {
                 date={formatDate(event.date)}
                 location={event.location}
                 description={event.description}
-                image={event.coverImageUrl || "https://picsum.photos/seed/event/800/600"}
-                href="/events"
+                image={event.coverImageUrl || buildContentFallbackImage("event", event.title)}
+                href={`/events/${event.slug || event._id}`}
               />
             ))}
         </div>
@@ -160,8 +160,9 @@ export default function Home() {
                 excerpt={item.description}
                 containerClassName="bg-white shadow-xl border border-gray-500/30"
                 tag={item.category}
-                image={item.coverImageUrl || "https://picsum.photos/seed/opportunity/800/600"}
+                image={item.coverImageUrl || buildContentFallbackImage("scholarship", item.title)}
                 organization={item.organization}
+                href={`/opportunities/${item.slug || item._id}`}
               />
             ))}
         </div>
@@ -200,6 +201,7 @@ export default function Home() {
                     "Featured alumni story coming soon."
                   }
                   image={alumnus.avatarUrl || undefined}
+                  href={`/community/${alumnus._id}`}
                 />
               ))}
           </div>
@@ -233,7 +235,8 @@ export default function Home() {
                 excerpt={news.excerpt || news.content}
                 containerClassName="bg-white shadow-xl"
                 tag={news.tags}
-                image={news.coverImageUrl || undefined}
+                image={news.coverImageUrl || buildContentFallbackImage("news", news.title)}
+                href={`/news/${news.slug || news._id}`}
               />
             ))}
         </div>

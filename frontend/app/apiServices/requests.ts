@@ -11,9 +11,11 @@ import {
   NEWS_ENDPOINTS,
   OPPORTUNITY_ENDPOINTS,
   SETTINGS_ENDPOINTS,
+  EXECUTIVE_ENDPOINTS,
 } from "./routes";
 import type {
   AdminDashboardData,
+  AdminAlumniFormBody,
   ApiResponse,
   ContactBody,
   ContactMessage,
@@ -21,6 +23,8 @@ import type {
   DonationBody,
   DonationSummary,
   Event,
+  Executive,
+  ExecutiveFormBody,
   EventFormBody,
   GalleryFormBody,
   GalleryItem,
@@ -31,7 +35,7 @@ import type {
   Opportunity,
   OpportunityFormBody,
   PaginatedApiResponse,
-  ProfileUpdateBody,
+  ProfileUpdatePayload,
   RegisterBody,
   Settings,
   Sponsorship,
@@ -40,8 +44,6 @@ import type {
   UsersFilter,
   AuthPayload,
 } from "../types/types";
-import { verify } from "crypto";
-import { Verified } from "lucide-react";
 
 const buildQueryString = (params?: Record<string, unknown>) => {
   if (!params) {
@@ -128,6 +130,22 @@ export const request = {
     return response.data;
   },
 
+  forgotPassword: async (email: string) => {
+    const response = await crudRequest.POST<
+      { email: string },
+      ApiResponse<{ sent: boolean; expiresAt?: string; previewUrl?: string | null }>
+    >(AUTH_ENDPOINTS.FORGOT_PASSWORD, { email });
+    return response.data;
+  },
+
+  resetPassword: async (token: string, password: string) => {
+    const response = await crudRequest.POST<
+      { password: string },
+      ApiResponse<AuthPayload>
+    >(AUTH_ENDPOINTS.RESET_PASSWORD(token), { password });
+    return response.data;
+  },
+
   verifyEmail: async (token: string) => {
     const response = await crudRequest.GET<ApiResponse<{ token: string; user: User }>>(
       AUTH_ENDPOINTS.VERIFY_EMAIL(token),
@@ -153,11 +171,16 @@ export const request = {
     return response.data;
   },
 
-  updateOwnProfile: async (data: ProfileUpdateBody) => {
+  updateOwnProfile: async (data: ProfileUpdatePayload) => {
+    const formData = createFormData(data as unknown as Record<string, unknown>, {
+      avatar: data.avatar,
+    });
     const response = await crudRequest.POST<
-      ProfileUpdateBody,
+      FormData,
       ApiResponse<{ user: User; isProfileComplete: boolean }>
-    >(AUTH_ENDPOINTS.PROFILE, data);
+    >(AUTH_ENDPOINTS.PROFILE, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
     return response.data;
   },
 
@@ -183,8 +206,22 @@ export const request = {
   },
 
   getExecutives: async () => {
-    const response = await crudRequest.GET<ApiResponse<{ executives: User[] }>>(
-      ALUMNI_ENDPOINTS.EXECUTIVES,
+    const response = await crudRequest.GET<ApiResponse<{ executives: Executive[] }>>(
+      EXECUTIVE_ENDPOINTS.PUBLIC,
+    );
+    return response.data;
+  },
+
+  getAdminExecutives: async (params?: Record<string, unknown>) => {
+    const response = await crudRequest.GET<PaginatedApiResponse<Executive>>(
+      appendQuery(EXECUTIVE_ENDPOINTS.ADMIN, params),
+    );
+    return response.data;
+  },
+
+  getExecutiveById: async (id: string) => {
+    const response = await crudRequest.GET<ApiResponse<{ executive: Executive }>>(
+      EXECUTIVE_ENDPOINTS.DETAIL(id),
     );
     return response.data;
   },
@@ -196,9 +233,24 @@ export const request = {
     return response.data;
   },
 
+  createAlumnus: async (data: AdminAlumniFormBody) => {
+    const response = await crudRequest.POST<
+      AdminAlumniFormBody,
+      ApiResponse<{ alumnus: User }>
+    >(ALUMNI_ENDPOINTS.ADMIN, data);
+    return response.data;
+  },
+
   getAdminAlumnus: async (id: string) => {
     const response = await crudRequest.GET<ApiResponse<{ alumnus: User }>>(
       ALUMNI_ENDPOINTS.ADMIN_DETAIL(id),
+    );
+    return response.data;
+  },
+
+  getPublicAlumnus: async (id: string) => {
+    const response = await crudRequest.GET<ApiResponse<{ alumnus: User }>>(
+      ALUMNI_ENDPOINTS.DETAIL(id),
     );
     return response.data;
   },
@@ -340,6 +392,13 @@ export const request = {
   getAdminNews: async (params?: Record<string, unknown>) => {
     const response = await crudRequest.GET<PaginatedApiResponse<NewsItem>>(
       appendQuery(NEWS_ENDPOINTS.ADMIN, params),
+    );
+    return response.data;
+  },
+
+  getNewsById: async (id: string) => {
+    const response = await crudRequest.GET<ApiResponse<{ news: NewsItem }>>(
+      NEWS_ENDPOINTS.DETAIL(id),
     );
     return response.data;
   },
@@ -498,6 +557,41 @@ export const request = {
       Partial<Settings>,
       ApiResponse<{ settings: Settings }>
     >(SETTINGS_ENDPOINTS.ADMIN, data);
+    return response.data;
+  },
+
+  createExecutive: async (data: ExecutiveFormBody, image?: File | null) => {
+    const formData = createFormData(data as Record<string, unknown>, {
+      profilePicture: image,
+    });
+    const response = await crudRequest.POST<FormData, ApiResponse<{ executive: Executive }>>(
+      EXECUTIVE_ENDPOINTS.PUBLIC,
+      formData,
+      { headers: { "Content-Type": "multipart/form-data" } },
+    );
+    return response.data;
+  },
+
+  updateExecutive: async (
+    id: string,
+    data: Partial<ExecutiveFormBody>,
+    image?: File | null,
+  ) => {
+    const formData = createFormData(data as Record<string, unknown>, {
+      profilePicture: image,
+    });
+    const response = await crudRequest.PATCH<FormData, ApiResponse<{ executive: Executive }>>(
+      EXECUTIVE_ENDPOINTS.DETAIL(id),
+      formData,
+      { headers: { "Content-Type": "multipart/form-data" } },
+    );
+    return response.data;
+  },
+
+  deleteExecutive: async (id: string) => {
+    const response = await crudRequest.DELETE<ApiResponse<{ executive: Executive }>>(
+      EXECUTIVE_ENDPOINTS.DETAIL(id),
+    );
     return response.data;
   },
 

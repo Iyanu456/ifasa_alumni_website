@@ -5,9 +5,11 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import InputField from "../../components/InputField";
 import { TokenService } from "../../apiServices/token-service";
+import { request } from "@/app/apiServices/requests";
 import {
   getApiErrorMessage,
   useAppMutations,
+  
 } from "../../apiServices/mutations";
 import { useStore } from "../../lib/store";
 
@@ -15,11 +17,15 @@ export default function LoginPage() {
   const router = useRouter();
   const { setUser } = useStore();
   const { loginMutation } = useAppMutations();
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  
   const [form, setForm] = useState({
     email: "",
     password: "",
   });
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
 
   const updateField = (field: "email" | "password", value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -44,6 +50,25 @@ export default function LoginPage() {
       setErrorMessage(getApiErrorMessage(error, "Unable to sign in."));
     }
   };
+
+  const handleGoogleLogin = async () => {
+      setErrorMessage(null);
+      setStatusMessage(null);
+      setIsGoogleLoading(true);
+  
+      try {
+        const response = await request.getGoogleAuthUrl(
+          `${window.location.origin}/login`,
+        );
+        window.location.href = response.data.url;
+      } catch (error) {
+        setErrorMessage(
+          getApiErrorMessage(error, "Unable to start Google authentication."),
+        );
+        setIsGoogleLoading(false);
+      }
+    };
+
 
   return (
     <section className="w-full mb-16">
@@ -90,6 +115,15 @@ export default function LoginPage() {
             {loginMutation.isPending ? "Signing In..." : "Sign In"}
           </button>
 
+          <button
+            type="button"
+            onClick={handleGoogleLogin}
+            disabled={isGoogleLoading}
+            className="w-full border border-gray-300 py-3 rounded-lg font-medium hover:bg-gray-50 transition disabled:opacity-60"
+          >
+            {isGoogleLoading ? "Redirecting to Google..." : "Continue with Google"}
+          </button>
+
           <p className="text-sm text-center text-gray-500">
             Not an admin?
             <Link href="/" className="text-primary hover:underline ml-1">
@@ -97,6 +131,7 @@ export default function LoginPage() {
             </Link>
           </p>
         </form>
+        
       </div>
     </section>
   );

@@ -2,9 +2,11 @@ import { Router } from "express";
 import {
   getMe,
   googleCallback,
+  forgotPassword,
   initiateGoogleAuth,
   login,
   register,
+  resetPasswordController,
   resendVerification,
   verifyEmail,
 } from "../controllers/auth.controller.js";
@@ -13,8 +15,10 @@ import { authLimiter } from "../middlewares/rate-limit.middleware.js";
 import { validateRequest } from "../middlewares/validate.middleware.js";
 import {
   googleInitiateValidation,
+  forgotPasswordValidation,
   loginValidation,
   registerValidation,
+  resetPasswordValidation,
   resendVerificationValidation,
 } from "../validators/auth.validator.js";
 
@@ -36,6 +40,20 @@ router.post(
   resendVerificationValidation,
   validateRequest,
   resendVerification,
+);
+router.post(
+  "/forgot-password",
+  authLimiter,
+  forgotPasswordValidation,
+  validateRequest,
+  forgotPassword,
+);
+router.post(
+  "/reset-password/:token",
+  authLimiter,
+  resetPasswordValidation,
+  validateRequest,
+  resetPasswordController,
 );
 router.get("/verify-email/:token", verifyEmail);
 router.get("/me", protect, requireCompleteProfile, getMe);

@@ -17,7 +17,6 @@ export default function ContactPage() {
   const executivesQuery = useExecutivesQuery();
 
   const settings = settingsQuery.data?.data.settings;
-  const executives = executivesQuery.data?.data.executives ?? [];
 
   const contactError =
     settingsQuery.error || executivesQuery.error
@@ -26,13 +25,13 @@ export default function ContactPage() {
 
   const executiveCards = useMemo(
     () =>
-      executives.slice(0, 8).map((executive) => ({
-        id: executive.id,
-        name: executive.fullName,
-        role: executive.associationRoleTitle || executive.currentRole || "Executive",
-        image: executive.avatarUrl || buildAvatarFallback(executive.fullName),
+      (executivesQuery.data?.data.executives ?? []).slice(0, 8).map((executive) => ({
+        id: executive._id,
+        name: executive.name,
+        role: executive.position || executive.role || "Executive",
+        image: executive.profilePicture || buildAvatarFallback(executive.name),
       })),
-    [executives],
+    [executivesQuery.data],
   );
 
   const updateField = (field: "name" | "email" | "message", value: string) =>

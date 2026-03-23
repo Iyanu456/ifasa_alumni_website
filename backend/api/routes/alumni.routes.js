@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
   approveAlumnusById,
+  createAlumnusByAdmin,
   deleteAlumnusById,
   getExecutiveAlumniList,
   getAdminAlumniList,
@@ -14,6 +15,7 @@ import { validateRequest } from "../middlewares/validate.middleware.js";
 import { mongoIdParamValidation } from "../validators/common.validator.js";
 import {
   adminAlumniQueryValidation,
+  createAlumniValidation,
   publicAlumniQueryValidation,
   updateAlumniValidation,
 } from "../validators/user.validator.js";
@@ -22,6 +24,14 @@ const router = Router();
 
 router.get("/", publicAlumniQueryValidation, validateRequest, getPublicAlumniList);
 router.get("/executives", getExecutiveAlumniList);
+router.post(
+  "/admin",
+  protect,
+  authorizeRoles("admin"),
+  createAlumniValidation,
+  validateRequest,
+  createAlumnusByAdmin,
+);
 router.get("/admin", protect, authorizeRoles("admin"), adminAlumniQueryValidation, validateRequest, getAdminAlumniList);
 router.get(
   "/admin/:id",

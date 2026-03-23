@@ -14,8 +14,8 @@ const swaggerSpec = {
   },
   servers: [
     {
-      url: "/api/v1",
-      description: "Version 1",
+      url: "/api",
+      description: "Current API",
     },
   ],
   tags,

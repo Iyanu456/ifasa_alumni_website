@@ -130,6 +130,14 @@ const userSchema = new mongoose.Schema(
       type: Date,
       select: false,
     },
+    passwordResetTokenHash: {
+      type: String,
+      select: false,
+    },
+    passwordResetTokenExpiresAt: {
+      type: Date,
+      select: false,
+    },
     consent: {
       type: Boolean,
       required() {
@@ -194,6 +202,8 @@ applyCommonSchemaOptions(userSchema, [
   "password",
   "verificationTokenHash",
   "verificationTokenExpiresAt",
+  "passwordResetTokenHash",
+  "passwordResetTokenExpiresAt",
 ]);
 
 const User = mongoose.model("User", userSchema);

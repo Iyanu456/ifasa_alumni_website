@@ -3,7 +3,7 @@
 import { useState } from "react";
 import OpportunityCard from "./components/OpportunitiesCard";
 import { useOpportunitiesQuery } from "../apiServices/queries";
-import { formatDate } from "../lib/formatters";
+import { buildContentFallbackImage, formatDate } from "../lib/formatters";
 
 type Category =
   | "All"
@@ -88,7 +88,10 @@ export default function OpportunitiesPage() {
               location={opp.location || undefined}
               deadline={opp.deadline ? formatDate(opp.deadline) : undefined}
               description={opp.description}
-              image={opp.coverImageUrl || "https://picsum.photos/seed/opportunity/800/600"}
+              image={
+                opp.coverImageUrl ||
+                buildContentFallbackImage("opportunity", opp.title)
+              }
               link={`/opportunities/${opp.slug || opp._id}`}
             />
           ))

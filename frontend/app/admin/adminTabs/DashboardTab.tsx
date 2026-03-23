@@ -189,7 +189,7 @@ export default function AdminDashboard() {
           <div className="space-y-3 text-sm">
             {dashboard.latestOpportunities.map((opportunity, index) => (
               <div
-                key={`${opportunity.id || opportunity.title}-${index}`}
+                key={`${opportunity._id || opportunity.title}-${index}`}
                 className="flex justify-between border-b border-gray-100 pb-2 last:border-b-0"
               >
                 <p>

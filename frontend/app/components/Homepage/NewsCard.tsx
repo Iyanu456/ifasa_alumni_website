@@ -1,4 +1,17 @@
 import Image from "next/image";
+import Link from "next/link";
+import { buildContentFallbackImage } from "../../lib/formatters";
+
+type NewsCardProps = {
+  title: string;
+  date?: string;
+  excerpt: string;
+  image?: string;
+  containerClassName?: string;
+  tag?: string | string[];
+  organization?: string;
+  href?: string;
+};
 
 export default function NewsCard({
   title,
@@ -7,34 +20,23 @@ export default function NewsCard({
   image,
   containerClassName = "",
   tag,
-  organization
-}: {
-  title: string;
-  date?: string;
-  excerpt: string;
-  image?: string;
-  containerClassName?: string;
-  tag?: string | string[];
-  organization?: string;
-}) {
-  return (
+  organization,
+  href,
+}: NewsCardProps) {
+  const content = (
     <article
       className={`bg-[#FAFAFA] rounded-xl border border-gray-100 hover:shadow-md transition flex flex-col h-full overflow-hidden ${containerClassName}`}
     >
-      {/* Image */}
-      {image && (
-        <div className="relative w-full h-40 sm:h-44">
-          <Image
-            src={image}
-            alt={title}
-            fill
-            className="object-cover"
-            unoptimized
-          />
-        </div>
-      )}
+      <div className="relative w-full h-40 sm:h-44">
+        <Image
+          src={image || buildContentFallbackImage("news", title)}
+          alt={title}
+          fill
+          className="object-cover"
+          unoptimized
+        />
+      </div>
 
-      {/* Content */}
       <div className="p-4 sm:p-5 flex flex-col flex-grow">
         {tag && (
           <div className="self-start mb-3">
@@ -55,29 +57,19 @@ export default function NewsCard({
           </div>
         )}
 
-        {date && (
-          <p className="text-[0.65rem] sm:text-xs text-gray-500 mb-2">
-            {date}
-          </p>
-        )}
+        {date ? <p className="text-[0.65rem] sm:text-xs text-gray-500 mb-2">{date}</p> : null}
+        <h3 className="font-medium text-sm sm:text-base mb-2 line-clamp-2">{title}</h3>
+        {organization ? (
+          <p className="text-[0.75rem] sm:text-sm text-gray-500 mb-3">{organization}</p>
+        ) : null}
 
-        <h3 className="font-medium text-sm sm:text-base mb-2 line-clamp-2">
-          {title}
-        </h3>
-        {organization && (
-          <p className="text-[0.75rem] sm:text-sm text-gray-500 mb-3">
-            {organization}
-          </p>
-        )}
-
-        <p className="text-[0.75rem] sm:text-sm text-gray-600 line-clamp-3">
-          {excerpt}
-        </p>
-
+        <p className="text-[0.75rem] sm:text-sm text-gray-600 line-clamp-3">{excerpt}</p>
         <span className="mt-auto text-primary text-xs sm:text-sm font-medium pt-3">
           Read more →
         </span>
       </div>
     </article>
   );
+
+  return href ? <Link href={href}>{content}</Link> : content;
 }

@@ -61,6 +61,24 @@ const settingSchema = new mongoose.Schema(
       trim: true,
       default: "",
     },
+    donationAccountNumber: {
+      type: String,
+      trim: true,
+      default: "",
+      maxlength: 40,
+    },
+    donationBankName: {
+      type: String,
+      trim: true,
+      default: "",
+      maxlength: 120,
+    },
+    footerText: {
+      type: String,
+      trim: true,
+      default: "",
+      maxlength: 300,
+    },
     allowRegistrations: {
       type: Boolean,
       default: true,

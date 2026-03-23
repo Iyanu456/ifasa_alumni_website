@@ -4,14 +4,6 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       {
-        protocol: "https",
-        hostname: "picsum.photos",
-      },
-      {
-        protocol: "https",
-        hostname: "api.dicebear.com",
-      },
-      {
         protocol: "http",
         hostname: "localhost",
         port: "5000",
@@ -31,5 +23,4 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
-
 

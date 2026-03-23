@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import type { User } from "../../types/types";
 import { buildAvatarFallback } from "../../lib/formatters";
 
@@ -17,29 +18,33 @@ export default function AlumniCard({ alumnus }: { alumnus: User }) {
         />
       </div>
 
-      <h3 className="font-medium text-sm sm:text-base leading-tight">
-        {alumnus.fullName}
-      </h3>
+      <h3 className="font-medium text-sm sm:text-base leading-tight">{alumnus.fullName}</h3>
       <p className="text-xs sm:text-sm text-gray-500">
         {alumnus.currentRole || alumnus.associationRoleTitle || "Alumnus"}
       </p>
 
       <div className="mt-2 text-xs sm:text-sm text-gray-600 space-y-1">
         <p>
-          <span className="font-medium">Location:</span> {alumnus.location || "N/A"}
+          <span className="font-medium">Location: </span> {alumnus.location || "N/A"}
         </p>
         <p>
-          <span className="font-medium">Class of:</span> {alumnus.graduationYear || "N/A"}
+          <span className="font-medium">Class of: </span> {alumnus.graduationYear || "N/A"}
+        </p>
+        <p>
+          <span className="font-medium text-wrap">Email: </span> {alumnus.email || "N/A"}
         </p>
         <p className="line-clamp-2">
-          <span className="font-medium">Specialization:</span>
+          <span className="font-medium">Specialization: </span>
           {alumnus.specialization || alumnus.degree || "Not specified"}
         </p>
       </div>
 
-      <button className="mt-auto pt-3 text-primary text-xs sm:text-sm font-medium hover:underline">
+      {/*<Link
+        href={`/community/${alumnus._id}`}
+        className="mt-auto pt-3 text-primary text-xs sm:text-sm font-medium hover:underline"
+      >
         View profile →
-      </button>
+      </Link>*/}
     </article>
   );
 }

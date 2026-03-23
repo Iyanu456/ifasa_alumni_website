@@ -108,7 +108,7 @@ export default function CommunityPage() {
       {!alumniQuery.isLoading && !hasNoData && !hasNoResults && !alumniQuery.isError && (
         <section className="w-[92%] sm:w-[90%] md:w-[80%] mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {alumni.map((alumnus) => (
-            <AlumniCard key={alumnus.id} alumnus={alumnus} />
+            <AlumniCard key={alumnus._id} alumnus={alumnus} />
           ))}
         </section>
       )}

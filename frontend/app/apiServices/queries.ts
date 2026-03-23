@@ -6,12 +6,16 @@ export const useHomeDashboardQuery = () =>
   useQuery({
     queryKey: ["dashboard", "home"],
     queryFn: request.getHomeDashboard,
+    refetchOnWindowFocus: true,
+    refetchInterval: 60000,
   });
 
 export const useAdminDashboardQuery = () =>
   useQuery({
     queryKey: ["dashboard", "admin"],
     queryFn: request.getAdminDashboard,
+    refetchOnWindowFocus: true,
+    refetchInterval: 60000,
   });
 
 export const usePublicSettingsQuery = () =>
@@ -34,8 +38,21 @@ export const usePublicAlumniQuery = (params?: Record<string, unknown>) =>
 
 export const useExecutivesQuery = () =>
   useQuery({
-    queryKey: ["alumni", "executives"],
+    queryKey: ["executives", "public"],
     queryFn: request.getExecutives,
+  });
+
+export const useAdminExecutivesQuery = (params?: Record<string, unknown>) =>
+  useQuery({
+    queryKey: ["executives", "admin", params],
+    queryFn: () => request.getAdminExecutives(params),
+  });
+
+export const useExecutiveQuery = (id?: string) =>
+  useQuery({
+    queryKey: ["executive", id],
+    queryFn: () => request.getExecutiveById(id!),
+    enabled: Boolean(id),
   });
 
 export const useAdminAlumniQuery = (params?: Record<string, unknown>) =>
@@ -94,6 +111,13 @@ export const useAdminNewsQuery = (params?: Record<string, unknown>) =>
     queryFn: () => request.getAdminNews(params),
   });
 
+export const useNewsItemQuery = (id?: string) =>
+  useQuery({
+    queryKey: ["news", "item", id],
+    queryFn: () => request.getNewsById(id!),
+    enabled: Boolean(id),
+  });
+
 export const useGalleryQuery = (params?: Record<string, unknown>) =>
   useQuery({
     queryKey: ["gallery", params],
@@ -136,4 +160,11 @@ export const useOwnProfileQuery = (enabled = true) =>
     queryKey: ["auth", "profile"],
     queryFn: request.getOwnProfile,
     enabled,
+  });
+
+export const usePublicAlumnusQuery = (id?: string) =>
+  useQuery({
+    queryKey: ["alumni", "public", "item", id],
+    queryFn: () => request.getPublicAlumnus(id!),
+    enabled: Boolean(id),
   });

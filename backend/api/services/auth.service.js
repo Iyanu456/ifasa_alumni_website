@@ -5,7 +5,7 @@ import env from "../config/env.js";
 import ApiError from "../utils/api-error.js";
 import { generateRandomToken, hashToken } from "../utils/crypto.js";
 import { USER_ROLES } from "../utils/roles.js";
-import { sendVerificationEmail } from "./email.service.js";
+import { sendPasswordResetEmail, sendVerificationEmail } from "./email.service.js";
 import { logActivity } from "./activity.service.js";
 import { getSettings } from "./settings.service.js";
 import { emailQueue } from "../queues/email.queue.js";
@@ -64,6 +64,20 @@ const buildVerificationState = () => {
 
 const buildVerificationUrl = (token) =>
   `${env.clientUrl}/verify-email/${token}`;
+
+const buildPasswordResetState = () => {
+  const rawToken = generateRandomToken(32);
+
+  return {
+    rawToken,
+    hashedToken: hashToken(rawToken),
+    expiresAt: new Date(
+      Date.now() + env.passwordResetTokenTtlMinutes * 60 * 1000,
+    ),
+  };
+};
+
+const buildPasswordResetUrl = (token) => `${env.clientUrl}/reset-password/${token}`;
 
 const normalizeRedirectUri = (redirectUri) => {
   const fallback = env.googleAuthSuccessRedirect || env.clientUrl;
@@ -402,6 +416,82 @@ export const resendVerificationEmail = async (emailAddress) => {
   };
 };
 
+export const requestPasswordReset = async (emailAddress) => {
+  const email = emailAddress.toLowerCase().trim();
+  const user = await User.findOne({ email }).select(
+    "+passwordResetTokenHash +passwordResetTokenExpiresAt",
+  );
+
+  if (!user) {
+    return { sent: true };
+  }
+
+  if (user.authProvider === "google" && !user.password) {
+    return { sent: true };
+  }
+
+  const resetState = buildPasswordResetState();
+  user.passwordResetTokenHash = resetState.hashedToken;
+  user.passwordResetTokenExpiresAt = resetState.expiresAt;
+  await user.save();
+
+  const emailResult = await sendPasswordResetEmail({
+    email: user.email,
+    fullName: user.fullName || user.email,
+    resetLink: buildPasswordResetUrl(resetState.rawToken),
+  });
+
+  await logActivity({
+    actor: user,
+    action: "auth.request-password-reset",
+    entityType: "user",
+    entityId: user._id,
+    targetName: user.fullName,
+    description: "Password reset requested.",
+  });
+
+  return {
+    sent: true,
+    expiresAt: resetState.expiresAt,
+    previewUrl: emailResult.previewUrl,
+  };
+};
+
+export const resetPassword = async (token, password) => {
+  const hashedToken = hashToken(token);
+
+  const user = await User.findOne({
+    passwordResetTokenHash: hashedToken,
+    passwordResetTokenExpiresAt: { $gt: new Date() },
+  }).select("+password +passwordResetTokenHash +passwordResetTokenExpiresAt");
+
+  if (!user) {
+    throw new ApiError(
+      400,
+      "Password reset token is invalid or has expired.",
+      "INVALID_PASSWORD_RESET_TOKEN",
+    );
+  }
+
+  user.password = password;
+  user.passwordResetTokenHash = undefined;
+  user.passwordResetTokenExpiresAt = undefined;
+  user.authProvider = "local";
+  user.lastLoginAt = new Date();
+  await user.save();
+
+  await logActivity({
+    actor: user,
+    action: "auth.reset-password",
+    entityType: "user",
+    entityId: user._id,
+    targetName: user.fullName,
+    description: "Password reset completed.",
+  });
+
+  return buildAuthResult(user);
+};
+
 export const loginUser = async ({ email: emailAddress, password }) => {
   const email = emailAddress.toLowerCase().trim();
   const user = await User.findOne({ email }).select("+password");
@@ -431,6 +521,9 @@ export const loginUser = async ({ email: emailAddress, password }) => {
       "EMAIL_NOT_VERIFIED",
     );
   }
+
+  user.passwordResetTokenHash = undefined;
+  user.passwordResetTokenExpiresAt = undefined;
 
   user.lastLoginAt = new Date();
   await user.save();

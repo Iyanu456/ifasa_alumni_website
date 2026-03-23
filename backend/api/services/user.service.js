@@ -1,14 +1,17 @@
 import mongoose from "mongoose";
 import User from "../models/user.model.js";
 import ApiError from "../utils/api-error.js";
-import { REGULAR_USER_ROLES } from "../utils/roles.js";
+import { REGULAR_USER_ROLES, USER_ROLES } from "../utils/roles.js";
 import { listDocuments } from "./query.service.js";
 import { logActivity } from "./activity.service.js";
+import { deleteLocalFileByUrl } from "../utils/file.js";
 
 import env from "../config/env.js"; // adjust path if needed
 
 const buildAlumniFilter = ({ adminView = false, query = {} }) => {
-  const filter = {};
+  const filter = {
+    role: { $in: REGULAR_USER_ROLES },
+  };
 
   // ✅ Exclude only the super admin
   if (env.adminEmail) {
@@ -116,6 +119,37 @@ export const getPublicAlumnus = async (id) => findAlumnus(id, false);
 
 export const getAdminAlumnus = async (id) => findAlumnus(id, true);
 
+export const createAlumnus = async (payload, actor) => {
+  const email = payload.email.toLowerCase().trim();
+  const existingUser = await User.findOne({ email });
+
+  if (existingUser) {
+    throw new ApiError(409, "A user with this email already exists.", "USER_EXISTS");
+  }
+
+  const alumnus = await User.create({
+    ...payload,
+    email,
+    role: USER_ROLES.USER,
+    authProvider: "local",
+    isVerified: true,
+    isProfileComplete: true,
+    status: payload.status || "approved",
+    consent: payload.consent ?? true,
+  });
+
+  await logActivity({
+    actor,
+    action: "alumni.created",
+    entityType: "user",
+    entityId: alumnus._id,
+    targetName: alumnus.fullName,
+    description: "Alumni profile created by admin.",
+  });
+
+  return alumnus;
+};
+
 export const approveAlumnus = async (id, actor) => {
   const alumnus = await findAlumnus(id, true);
   alumnus.status = "approved";
@@ -187,6 +221,10 @@ export const upsertOwnProfile = async (userId, payload, actor) => {
 
   if (!user) {
     throw new ApiError(404, "User not found.", "USER_NOT_FOUND");
+  }
+
+  if (payload.avatarUrl && user.avatarUrl && payload.avatarUrl !== user.avatarUrl) {
+    await deleteLocalFileByUrl(user.avatarUrl);
   }
 
   Object.entries(payload).forEach(([key, value]) => {

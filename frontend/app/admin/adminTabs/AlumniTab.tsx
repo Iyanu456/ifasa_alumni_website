@@ -2,29 +2,65 @@
 
 import { useMemo, useState } from "react";
 import Image from "next/image";
-import { MoreVertical, Search, X } from "lucide-react";
+import { MoreVertical, Plus, Search, X } from "lucide-react";
 import { getApiErrorMessage, useAppMutations } from "../../apiServices/mutations";
 import { useAdminUsersQuery } from "../../apiServices/queries";
 import { buildAvatarFallback } from "../../lib/formatters";
-import type { User } from "../../types/types";
+import type { AdminAlumniFormBody, User } from "../../types/types";
 import { truncateText } from "../../lib/formatters";
 
-type EditFormState = {
+type EditFormState = AdminAlumniFormBody & {
   fullName: string;
+  email: string;
+  password: string;
+  phone: string;
+  degree: string;
   currentRole: string;
   company: string;
   location: string;
   graduationYear: string;
   status: "pending" | "approved";
+  consent: boolean;
+};
+
+const initialFormState: EditFormState = {
+  fullName: "",
+  email: "",
+  password: "",
+  phone: "",
+  degree: "",
+  currentRole: "",
+  company: "",
+  location: "",
+  graduationYear: "",
+  status: "approved",
+  specialization: "",
+  bio: "",
+  associationRoleTitle: "",
+  spotlightQuote: "",
+  isMentorAvailable: false,
+  isSpotlight: false,
+  consent: true,
 };
 
 const buildEditState = (user: User): EditFormState => ({
   fullName: user.fullName || "",
+  email: user.email || "",
+  password: "",
+  phone: user.phone || "",
+  degree: user.degree || "",
   currentRole: user.currentRole || "",
   company: user.company || "",
   location: user.location || "",
   graduationYear: user.graduationYear || "",
   status: user.status,
+  specialization: user.specialization || "",
+  bio: user.bio || "",
+  associationRoleTitle: user.associationRoleTitle || "",
+  spotlightQuote: user.spotlightQuote || "",
+  isMentorAvailable: user.isMentorAvailable || false,
+  isSpotlight: user.isSpotlight || false,
+  consent: user.consent ?? true,
 });
 
 export default function AlumniTab() {
@@ -35,6 +71,7 @@ export default function AlumniTab() {
   const usersQuery = useAdminUsersQuery({ search, limit: 50 });
   const {
     approveAlumnusMutation,
+    createAlumnusMutation,
     updateAlumnusMutation,
     deleteAlumnusMutation,
     makeAdminMutation,
@@ -44,10 +81,17 @@ export default function AlumniTab() {
   const users = useMemo(() => usersQuery.data?.data ?? [], [usersQuery.data]);
   const isSubmitting =
     approveAlumnusMutation.isPending ||
+    createAlumnusMutation.isPending ||
     updateAlumnusMutation.isPending ||
     deleteAlumnusMutation.isPending ||
     makeAdminMutation.isPending ||
     removeAdminMutation.isPending;
+
+  const openCreateModal = () => {
+    setEditingUser(null);
+    setEditForm(initialFormState);
+    setActiveMenu(null);
+  };
 
   const openEditModal = (user: User) => {
     setEditingUser(user);
@@ -90,7 +134,31 @@ export default function AlumniTab() {
   };
 
   const handleEditSubmit = async () => {
-    if (!editingUser || !editForm) {
+    if (!editForm) {
+      return;
+    }
+
+    if (!editingUser) {
+      await createAlumnusMutation.mutateAsync({
+        fullName: editForm.fullName,
+        email: editForm.email,
+        password: editForm.password,
+        phone: editForm.phone,
+        degree: editForm.degree,
+        graduationYear: editForm.graduationYear,
+        currentRole: editForm.currentRole,
+        company: editForm.company,
+        location: editForm.location,
+        status: editForm.status,
+        specialization: editForm.specialization,
+        bio: editForm.bio,
+        associationRoleTitle: editForm.associationRoleTitle,
+        spotlightQuote: editForm.spotlightQuote,
+        isMentorAvailable: editForm.isMentorAvailable,
+        isSpotlight: editForm.isSpotlight,
+        consent: editForm.consent,
+      });
+      closeEditModal();
       return;
     }
 
@@ -98,11 +166,19 @@ export default function AlumniTab() {
       id: editingUser._id,
       data: {
         fullName: editForm.fullName,
+        phone: editForm.phone,
+        degree: editForm.degree,
         currentRole: editForm.currentRole,
         company: editForm.company,
         location: editForm.location,
         graduationYear: editForm.graduationYear,
         status: editForm.status,
+        specialization: editForm.specialization,
+        bio: editForm.bio,
+        associationRoleTitle: editForm.associationRoleTitle,
+        spotlightQuote: editForm.spotlightQuote,
+        isMentorAvailable: editForm.isMentorAvailable,
+        isSpotlight: editForm.isSpotlight,
       },
     });
 
@@ -111,6 +187,7 @@ export default function AlumniTab() {
 
   const mutationError =
     approveAlumnusMutation.error ||
+    createAlumnusMutation.error ||
     updateAlumnusMutation.error ||
     deleteAlumnusMutation.error ||
     makeAdminMutation.error ||
@@ -120,11 +197,21 @@ export default function AlumniTab() {
 
   return (
     <section className="space-y-6">
-      <div>
-        <h1 className="text-lg font-semibold md:text-2xl">User Management</h1>
-        <p className="text-sm text-gray-500">
-          Review registrations, update alumni records, and manage admin access.
-        </p>
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <h1 className="text-lg font-semibold md:text-2xl">User Management</h1>
+          <p className="text-sm text-gray-500">
+            Review registrations, update alumni records, and manage admin access.
+          </p>
+        </div>
+
+        <button
+          onClick={openCreateModal}
+          className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm text-white"
+        >
+          <Plus size={16} />
+          Add Alumni
+        </button>
       </div>
 
       <div className="flex items-center gap-3 rounded-xl border border-gray-100 bg-white p-4">
@@ -174,7 +261,7 @@ export default function AlumniTab() {
 
               <tbody>
                 {users.map((user) => {
-                  const avatar = buildAvatarFallback(user.fullName);
+                  const avatar = user.avatarUrl || buildAvatarFallback(user.fullName);
 
                   return (
                     <tr
@@ -299,13 +386,17 @@ export default function AlumniTab() {
         )}
       </div>
 
-      {editingUser && editForm ? (
+      {editForm ? (
         <div className="fixed inset-0 z-[2600] flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-2xl rounded-2xl bg-white shadow-xl">
+          <div className="w-full max-w-3xl rounded-2xl bg-white shadow-xl">
             <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
               <div>
-                <h2 className="text-lg font-semibold">Edit Alumni Profile</h2>
-                <p className="text-sm text-gray-500">{editingUser.email}</p>
+                <h2 className="text-lg font-semibold">
+                  {editingUser ? "Edit Alumni Profile" : "Create Alumni Record"}
+                </h2>
+                <p className="text-sm text-gray-500">
+                  {editingUser ? editingUser.email : "Create a managed alumni account."}
+                </p>
               </div>
 
               <button
@@ -317,6 +408,31 @@ export default function AlumniTab() {
             </div>
 
             <div className="grid gap-4 px-6 py-6 md:grid-cols-2">
+              {!editingUser ? (
+                <>
+                  <input
+                    value={editForm.email}
+                    onChange={(event) =>
+                      setEditForm((current) =>
+                        current ? { ...current, email: event.target.value } : current,
+                      )
+                    }
+                    placeholder="Email address"
+                    className="rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/30"
+                  />
+                  <input
+                    type="password"
+                    value={editForm.password}
+                    onChange={(event) =>
+                      setEditForm((current) =>
+                        current ? { ...current, password: event.target.value } : current,
+                      )
+                    }
+                    placeholder="Temporary password"
+                    className="rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/30"
+                  />
+                </>
+              ) : null}
               <input
                 value={editForm.fullName}
                 onChange={(event) =>
@@ -337,6 +453,26 @@ export default function AlumniTab() {
                   )
                 }
                 placeholder="Graduation year"
+                className="rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/30"
+              />
+              <input
+                value={editForm.phone}
+                onChange={(event) =>
+                  setEditForm((current) =>
+                    current ? { ...current, phone: event.target.value } : current,
+                  )
+                }
+                placeholder="Phone number"
+                className="rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/30"
+              />
+              <input
+                value={editForm.degree}
+                onChange={(event) =>
+                  setEditForm((current) =>
+                    current ? { ...current, degree: event.target.value } : current,
+                  )
+                }
+                placeholder="Degree"
                 className="rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/30"
               />
               <input
@@ -369,6 +505,30 @@ export default function AlumniTab() {
                 placeholder="Location"
                 className="rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/30"
               />
+              <input
+                value={editForm.specialization || ""}
+                onChange={(event) =>
+                  setEditForm((current) =>
+                    current
+                      ? { ...current, specialization: event.target.value }
+                      : current,
+                  )
+                }
+                placeholder="Specialization"
+                className="rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/30"
+              />
+              <input
+                value={editForm.associationRoleTitle || ""}
+                onChange={(event) =>
+                  setEditForm((current) =>
+                    current
+                      ? { ...current, associationRoleTitle: event.target.value }
+                      : current,
+                  )
+                }
+                placeholder="Association title"
+                className="rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/30"
+              />
               <select
                 value={editForm.status}
                 onChange={(event) =>
@@ -386,6 +546,57 @@ export default function AlumniTab() {
                 <option value="pending">Pending</option>
                 <option value="approved">Approved</option>
               </select>
+              <textarea
+                rows={3}
+                value={editForm.bio || ""}
+                onChange={(event) =>
+                  setEditForm((current) =>
+                    current ? { ...current, bio: event.target.value } : current,
+                  )
+                }
+                placeholder="Short bio"
+                className="rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/30 md:col-span-2"
+              />
+              <div className="flex flex-wrap gap-4 text-sm text-gray-600 md:col-span-2">
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={Boolean(editForm.consent)}
+                    onChange={(event) =>
+                      setEditForm((current) =>
+                        current ? { ...current, consent: event.target.checked } : current,
+                      )
+                    }
+                  />
+                  Consent received
+                </label>
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={Boolean(editForm.isMentorAvailable)}
+                    onChange={(event) =>
+                      setEditForm((current) =>
+                        current
+                          ? { ...current, isMentorAvailable: event.target.checked }
+                          : current,
+                      )
+                    }
+                  />
+                  Available as mentor
+                </label>
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={Boolean(editForm.isSpotlight)}
+                    onChange={(event) =>
+                      setEditForm((current) =>
+                        current ? { ...current, isSpotlight: event.target.checked } : current,
+                      )
+                    }
+                  />
+                  Feature in spotlight
+                </label>
+              </div>
             </div>
 
             <div className="flex justify-end gap-3 border-t border-gray-100 bg-gray-50 px-6 py-4">
@@ -397,10 +608,14 @@ export default function AlumniTab() {
               </button>
               <button
                 onClick={() => void handleEditSubmit()}
-                disabled={updateAlumnusMutation.isPending}
+                disabled={createAlumnusMutation.isPending || updateAlumnusMutation.isPending}
                 className="rounded-lg bg-primary px-4 py-2 text-sm text-white hover:opacity-90 disabled:opacity-60"
               >
-                {updateAlumnusMutation.isPending ? "Saving..." : "Save Changes"}
+                {createAlumnusMutation.isPending || updateAlumnusMutation.isPending
+                  ? "Saving..."
+                  : editingUser
+                    ? "Save Changes"
+                    : "Create Alumni"}
               </button>
             </div>
           </div>

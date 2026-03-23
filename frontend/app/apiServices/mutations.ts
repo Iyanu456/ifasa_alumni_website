@@ -6,15 +6,17 @@ import { request } from "./requests";
 import { TokenService } from "./token-service";
 import { useStore } from "../lib/store";
 import type {
+  AdminAlumniFormBody,
   ContactBody,
   Donation,
   DonationBody,
+  ExecutiveFormBody,
   EventFormBody,
   GalleryFormBody,
   LoginBody,
   NewsFormBody,
   OpportunityFormBody,
-  ProfileUpdateBody,
+  ProfileUpdatePayload,
   RegisterBody,
   Settings,
   SponsorshipBody,
@@ -28,7 +30,45 @@ export const getApiErrorMessage = (error: unknown, fallback: string) => {
 
 export const useAppMutations = () => {
   const queryClient = useQueryClient();
-  const { setUser, user } = useStore();
+  const { setUser } = useStore();
+
+  const invalidateHomeDashboard = () =>
+    queryClient.invalidateQueries({ queryKey: ["dashboard", "home"] });
+
+  const invalidateAdminDashboard = () =>
+    queryClient.invalidateQueries({ queryKey: ["dashboard", "admin"] });
+
+  const invalidatePublicSettings = () =>
+    queryClient.invalidateQueries({ queryKey: ["settings", "public"] });
+
+  const invalidateAdminSettings = () =>
+    queryClient.invalidateQueries({ queryKey: ["settings", "admin"] });
+
+  const invalidateAlumniQueries = async () => {
+    await queryClient.invalidateQueries({ queryKey: ["alumni"] });
+    await queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
+  };
+
+  const invalidateEventQueries = async () => {
+    await queryClient.invalidateQueries({ queryKey: ["events"] });
+    await invalidateHomeDashboard();
+    await invalidateAdminDashboard();
+  };
+
+  const invalidateOpportunityQueries = async () => {
+    await queryClient.invalidateQueries({ queryKey: ["opportunities"] });
+    await invalidateHomeDashboard();
+    await invalidateAdminDashboard();
+  };
+
+  const invalidateNewsQueries = async () => {
+    await queryClient.invalidateQueries({ queryKey: ["news"] });
+    await invalidateHomeDashboard();
+  };
+
+  const invalidateExecutiveQueries = async () => {
+    await queryClient.invalidateQueries({ queryKey: ["executives"] });
+  };
 
   const loginMutation = useMutation({
     mutationFn: (data: LoginBody) => request.login(data),
@@ -59,6 +99,19 @@ export const useAppMutations = () => {
     
   });
 
+  const forgotPasswordMutation = useMutation({
+    mutationFn: (email: string) => request.forgotPassword(email),
+  });
+
+  const resetPasswordMutation = useMutation({
+    mutationFn: ({ token, password }: { token: string; password: string }) =>
+      request.resetPassword(token, password),
+    onSuccess: (response) => {
+      TokenService.setCookie(response.data.token);
+      setUser(response.data.user);
+    },
+  });
+
   const googleCallbackMutation = useMutation({
     mutationFn: ({code, state}:{code: string; state: string}) => request.googleCallback({code, state}),
     onSuccess: (response) => {
@@ -69,11 +122,13 @@ export const useAppMutations = () => {
 
 
   const updateOwnProfileMutation = useMutation({
-    mutationFn: (data: ProfileUpdateBody) => request.updateOwnProfile(data),
-    onSuccess: (response) => {
+    mutationFn: (data: ProfileUpdatePayload) => request.updateOwnProfile(data),
+    onSuccess: async (response) => {
       setUser(response.data.user);
-      queryClient.invalidateQueries({ queryKey: ["auth", "profile"] });
-      queryClient.invalidateQueries({ queryKey: ["alumni"] });
+      await queryClient.invalidateQueries({ queryKey: ["auth", "profile"] });
+      await invalidateAlumniQueries();
+      await invalidateHomeDashboard();
+      await invalidateAdminDashboard();
     },
   });
 
@@ -88,17 +143,18 @@ export const useAppMutations = () => {
 
   const createDonationMutation = useMutation({
     mutationFn: (data: DonationBody) => request.createDonation(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["donations", "summary"] });
-      queryClient.invalidateQueries({ queryKey: ["donations", "admin"] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["donations", "summary"] });
+      await queryClient.invalidateQueries({ queryKey: ["donations", "admin"] });
+      await invalidateAdminDashboard();
     },
   });
 
   const createEventMutation = useMutation({
     mutationFn: ({ data, image }: { data: EventFormBody; image?: File | null }) =>
       request.createEvent(data, image),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["events"] });
+    onSuccess: async () => {
+      await invalidateEventQueries();
     },
   });
 
@@ -112,15 +168,15 @@ export const useAppMutations = () => {
       data: Partial<EventFormBody>;
       image?: File | null;
     }) => request.updateEvent(id, data, image),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["events"] });
+    onSuccess: async () => {
+      await invalidateEventQueries();
     },
   });
 
   const deleteEventMutation = useMutation({
     mutationFn: (id: string) => request.deleteEvent(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["events"] });
+    onSuccess: async () => {
+      await invalidateEventQueries();
     },
   });
 
@@ -132,8 +188,8 @@ export const useAppMutations = () => {
       data: OpportunityFormBody;
       image?: File | null;
     }) => request.createOpportunity(data, image),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["opportunities"] });
+    onSuccess: async () => {
+      await invalidateOpportunityQueries();
     },
   });
 
@@ -147,23 +203,23 @@ export const useAppMutations = () => {
       data: Partial<OpportunityFormBody>;
       image?: File | null;
     }) => request.updateOpportunity(id, data, image),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["opportunities"] });
+    onSuccess: async () => {
+      await invalidateOpportunityQueries();
     },
   });
 
   const deleteOpportunityMutation = useMutation({
     mutationFn: (id: string) => request.deleteOpportunity(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["opportunities"] });
+    onSuccess: async () => {
+      await invalidateOpportunityQueries();
     },
   });
 
   const createNewsMutation = useMutation({
     mutationFn: ({ data, image }: { data: NewsFormBody; image?: File | null }) =>
       request.createNews(data, image),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["news"] });
+    onSuccess: async () => {
+      await invalidateNewsQueries();
     },
   });
 
@@ -177,15 +233,15 @@ export const useAppMutations = () => {
       data: Partial<NewsFormBody>;
       image?: File | null;
     }) => request.updateNews(id, data, image),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["news"] });
+    onSuccess: async () => {
+      await invalidateNewsQueries();
     },
   });
 
   const deleteNewsMutation = useMutation({
     mutationFn: (id: string) => request.deleteNews(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["news"] });
+    onSuccess: async () => {
+      await invalidateNewsQueries();
     },
   });
 
@@ -221,58 +277,104 @@ export const useAppMutations = () => {
 
   const updateSettingsMutation = useMutation({
     mutationFn: (data: Partial<Settings>) => request.updateSettings(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["settings"] });
+    onSuccess: async () => {
+      await invalidatePublicSettings();
+      await invalidateAdminSettings();
+    },
+  });
+
+  const createExecutiveMutation = useMutation({
+    mutationFn: ({ data, image }: { data: ExecutiveFormBody; image?: File | null }) =>
+      request.createExecutive(data, image),
+    onSuccess: async () => {
+      await invalidateExecutiveQueries();
+    },
+  });
+
+  const updateExecutiveMutation = useMutation({
+    mutationFn: ({
+      id,
+      data,
+      image,
+    }: {
+      id: string;
+      data: Partial<ExecutiveFormBody>;
+      image?: File | null;
+    }) => request.updateExecutive(id, data, image),
+    onSuccess: async () => {
+      await invalidateExecutiveQueries();
+    },
+  });
+
+  const deleteExecutiveMutation = useMutation({
+    mutationFn: (id: string) => request.deleteExecutive(id),
+    onSuccess: async () => {
+      await invalidateExecutiveQueries();
     },
   });
 
   const approveAlumnusMutation = useMutation({
     mutationFn: (id: string) => request.approveAlumnus(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["alumni"] });
-      queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
+    onSuccess: async () => {
+      await invalidateAlumniQueries();
+      await invalidateHomeDashboard();
+      await invalidateAdminDashboard();
+    },
+  });
+
+  const createAlumnusMutation = useMutation({
+    mutationFn: (data: AdminAlumniFormBody) => request.createAlumnus(data),
+    onSuccess: async () => {
+      await invalidateAlumniQueries();
+      await invalidateHomeDashboard();
+      await invalidateAdminDashboard();
     },
   });
 
   const updateAlumnusMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<User> }) =>
       request.updateAlumnus(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["alumni"] });
-      queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
+    onSuccess: async () => {
+      await invalidateAlumniQueries();
+      await invalidateHomeDashboard();
+      await invalidateAdminDashboard();
     },
   });
 
   const deleteAlumnusMutation = useMutation({
     mutationFn: (id: string) => request.deleteAlumnus(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["alumni"] });
-      queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
+    onSuccess: async () => {
+      await invalidateAlumniQueries();
+      await invalidateHomeDashboard();
+      await invalidateAdminDashboard();
     },
   });
 
   const makeAdminMutation = useMutation({
     mutationFn: (id: string) => request.makeAdmin(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
-      queryClient.invalidateQueries({ queryKey: ["alumni"] });
+    onSuccess: async () => {
+      await invalidateAlumniQueries();
+      await invalidateHomeDashboard();
+      await invalidateAdminDashboard();
     },
   });
 
   const removeAdminMutation = useMutation({
     mutationFn: (id: string) => request.removeAdmin(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
-      queryClient.invalidateQueries({ queryKey: ["alumni"] });
+    onSuccess: async () => {
+      await invalidateAlumniQueries();
+      await invalidateHomeDashboard();
+      await invalidateAdminDashboard();
     },
   });
 
   const updateDonationStatusMutation = useMutation({
     mutationFn: ({ id, status }: { id: string; status: Donation["status"] }) =>
       request.updateDonationStatus(id, status),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["donations"] });
-      queryClient.invalidateQueries({ queryKey: ["dashboard", "admin"] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["donations"] });
+      await queryClient.invalidateQueries({ queryKey: ["donations", "summary"] });
+      await invalidateAdminDashboard();
     },
   });
 
@@ -281,6 +383,8 @@ export const useAppMutations = () => {
     registerMutation,
     verifyEmailMutation,
     resendVerificationEmailMutation,
+    forgotPasswordMutation,
+    resetPasswordMutation,
     googleCallbackMutation,
     updateOwnProfileMutation,
     createContactMutation,
@@ -299,7 +403,11 @@ export const useAppMutations = () => {
     updateGalleryMutation,
     deleteGalleryMutation,
     updateSettingsMutation,
+    createExecutiveMutation,
+    updateExecutiveMutation,
+    deleteExecutiveMutation,
     approveAlumnusMutation,
+    createAlumnusMutation,
     updateAlumnusMutation,
     deleteAlumnusMutation,
     makeAdminMutation,

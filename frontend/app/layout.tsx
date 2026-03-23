@@ -1,20 +1,15 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Montserrat } from "next/font/google";
 import "./globals.css";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import Providers from "./providers";
 import SuspenseWrapper from "./components/SuspenseBoundaryWrapper";
 
-/*const geistSans = Geist({
-  variable: "--font-geist-sans",
+const montserrat = Montserrat({
   subsets: ["latin"],
+  variable: "--font-montserrat",
 });
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});*/
 
 export const metadata: Metadata = {
   title: "Ife Architecture Alumni Association",
@@ -27,28 +22,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com"/>
-        <link rel="preconnect" href="https://fonts.gstatic.com" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"
-          rel="stylesheet"
-        ></link>
-      </head>
-      
-        <body
-          className="pt-[5.9em] min-h-screen grid"
-        >
-          <SuspenseWrapper>
+    <html lang="en" className={montserrat.variable}>
+      <body className="grid min-h-screen pt-[5.9em]">
+        <SuspenseWrapper>
           <Providers>
             <Header />
             {children}
             <Footer />
           </Providers>
-          </SuspenseWrapper>
-        </body>
-      
+        </SuspenseWrapper>
+      </body>
     </html>
   );
 }

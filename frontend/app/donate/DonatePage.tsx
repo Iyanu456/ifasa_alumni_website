@@ -162,6 +162,29 @@ export default function DonatePage() {
         ))}
       </section>
 
+      {settings?.donationAccountNumber || settings?.donationBankName ? (
+        <section className="mx-auto mb-10 w-[92%] rounded-2xl border border-gray-100 bg-white p-6 sm:w-[90%] md:w-[80%]">
+          <h2 className="text-lg font-semibold">Direct Bank Donation</h2>
+          <p className="mt-2 text-sm text-gray-600">
+            Prefer a direct transfer? Use the account details below.
+          </p>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <div className="rounded-xl bg-gray-50 p-4">
+              <p className="text-xs uppercase tracking-wide text-gray-500">Account Number</p>
+              <p className="mt-1 text-lg font-semibold">
+                {settings?.donationAccountNumber || "Not configured"}
+              </p>
+            </div>
+            <div className="rounded-xl bg-gray-50 p-4">
+              <p className="text-xs uppercase tracking-wide text-gray-500">Bank Name</p>
+              <p className="mt-1 text-lg font-semibold">
+                {settings?.donationBankName || "Not configured"}
+              </p>
+            </div>
+          </div>
+        </section>
+      ) : null}
+
       <section className="mx-auto mb-16 grid h-[max-content] w-[92%] items-start gap-8 sm:w-[90%] md:w-[80%] md:grid-cols-2">
         <div className="grid h-full rounded-2xl border border-gray-100 bg-white p-6">
           <h2 className="mb-3 text-lg font-semibold">Make a Donation</h2>

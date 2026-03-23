@@ -1,6 +1,7 @@
 import {
   errorResponse,
   jsonBody,
+  jsonOrMultipartBody,
   listMetaExample,
   listMetaSchema,
   paginationParams,
@@ -28,29 +29,19 @@ export const authAndUserPaths = {
       requestBody: jsonBody(
         {
           type: "object",
-          required: ["fullName", "email", "password", "phone", "graduationYear", "degree", "consent"],
+          required: ["email", "password"],
           properties: {
-            fullName: { type: "string" },
             email: { type: "string", format: "email" },
             password: { type: "string", format: "password" },
-            phone: { type: "string" },
-            graduationYear: { type: "string" },
-            degree: { type: "string" },
-            specialization: { type: "string" },
-            currentRole: { type: "string" },
-            company: { type: "string" },
-            location: { type: "string" },
-            bio: { type: "string" },
-            consent: { type: "boolean" },
           },
         },
-        { fullName: "Tunde Adebayo", email: "tunde@email.com", password: "StrongPass123", phone: "+2348012345678", graduationYear: "2015", degree: "B.Sc Architecture", consent: true },
+        { email: "tunde@email.com", password: "StrongPass123" },
       ),
       responses: {
         201: successResponse({
           description: "Registration successful. Please check your email to verify your account.",
           dataSchema: { type: "object", properties: { user: { $ref: "#/components/schemas/User" }, verification: { type: "object", properties: { sent: { type: "boolean" }, expiresAt: { type: "string", format: "date-time" }, previewUrl: { type: "string", nullable: true } } } } },
-          example: { user: { id: "1", fullName: "Tunde Adebayo", email: "tunde@email.com", authProvider: "local", isVerified: false, isProfileComplete: true }, verification: { sent: true, expiresAt: "2026-03-21T12:00:00.000Z", previewUrl: null } },
+          example: { user: { id: "1", email: "tunde@email.com", authProvider: "local", isVerified: false, isProfileComplete: false }, verification: { sent: true, expiresAt: "2026-03-21T12:00:00.000Z", previewUrl: null } },
         }),
         400: errorResponse("Validation error."),
         409: errorResponse("User already exists."),
@@ -145,9 +136,6 @@ export const authAndUserPaths = {
             requiresProfileCompletion: true,
           },
         }),
-        302: {
-          description: "Redirects browser back to the frontend with success or error hash parameters.",
-        },
         400: errorResponse("Missing or invalid Google callback parameters."),
         401: errorResponse("Google authorization failed."),
       },
@@ -168,6 +156,42 @@ export const authAndUserPaths = {
           example: { sent: true, expiresAt: "2026-03-21T12:00:00.000Z", previewUrl: null },
         }),
         404: errorResponse("User not found."),
+      },
+    },
+  },
+  "/auth/forgot-password": {
+    post: {
+      tags: ["Auth"],
+      summary: "Request password reset email",
+      requestBody: jsonBody(
+        { type: "object", required: ["email"], properties: { email: { type: "string", format: "email" } } },
+        { email: "tunde@email.com" },
+      ),
+      responses: {
+        200: successResponse({
+          description: "If the account exists, a password reset email has been sent.",
+          dataSchema: { type: "object", properties: { sent: { type: "boolean" }, expiresAt: { type: "string", format: "date-time", nullable: true }, previewUrl: { type: "string", nullable: true } } },
+          example: { sent: true, expiresAt: "2026-03-23T16:00:00.000Z", previewUrl: null },
+        }),
+      },
+    },
+  },
+  "/auth/reset-password/{token}": {
+    post: {
+      tags: ["Auth"],
+      summary: "Reset password with token",
+      parameters: [{ name: "token", in: "path", required: true, schema: { type: "string" } }],
+      requestBody: jsonBody(
+        { type: "object", required: ["password"], properties: { password: { type: "string", format: "password" } } },
+        { password: "StrongPass123" },
+      ),
+      responses: {
+        200: successResponse({
+          description: "Password reset successfully.",
+          dataSchema: { $ref: "#/components/schemas/AuthResponse" },
+          example: { token: "jwt-token", user: { id: "1", email: "tunde@email.com" }, isProfileComplete: true, requiresProfileCompletion: false },
+        }),
+        400: errorResponse("Password reset token is invalid or has expired."),
       },
     },
   },
@@ -255,8 +279,18 @@ export const authAndUserPaths = {
       tags: ["Users"],
       summary: "Create or update own biodata profile and complete onboarding",
       security: [{ bearerAuth: [] }],
-      requestBody: jsonBody(
-        { $ref: "#/components/schemas/ProfileUpdateRequest" },
+      requestBody: jsonOrMultipartBody(
+        {
+          allOf: [
+            { $ref: "#/components/schemas/ProfileUpdateRequest" },
+            {
+              type: "object",
+              properties: {
+                avatar: { type: "string", format: "binary" },
+              },
+            },
+          ],
+        },
         { fullName: "Funke Oladipo", phone: "+2348011111111", graduationYear: "2017", degree: "B.Sc Architecture", specialization: "Sustainable Design", currentRole: "Urban Designer", company: "Urban Lab", location: "London, UK", bio: "Focused on sustainable architecture.", consent: true },
       ),
       responses: {
@@ -285,32 +319,105 @@ export const authAndUserPaths = {
       },
     },
   },
-  "/alumni/executives": {
+  "/executives": {
     get: {
-      tags: ["Alumni"],
-      summary: "List public alumni executives",
+      tags: ["Executives"],
+      summary: "List public executives",
       responses: {
         200: successResponse({
-          description: "Executive alumni fetched successfully.",
-          dataSchema: {
-            type: "object",
-            properties: {
-              executives: {
-                type: "array",
-                items: { $ref: "#/components/schemas/User" },
+          description: "Executives fetched successfully.",
+          dataSchema: { type: "object", properties: { executives: { type: "array", items: { $ref: "#/components/schemas/Executive" } } } },
+          example: { executives: [{ id: "1", name: "Tolu Adeyemi", role: "President" }] },
+        }),
+      },
+    },
+    post: {
+      tags: ["Executives"],
+      summary: "Create executive",
+      security: [{ bearerAuth: [] }],
+      requestBody: {
+        required: true,
+        content: {
+          "multipart/form-data": {
+            schema: {
+              type: "object",
+              required: ["name", "email", "role", "position", "title"],
+              properties: {
+                name: { type: "string" },
+                email: { type: "string", format: "email" },
+                role: { type: "string" },
+                position: { type: "string" },
+                title: { type: "string" },
+                sortOrder: { type: "integer" },
+                isPublished: { type: "boolean" },
+                profilePicture: { type: "string", format: "binary" },
               },
             },
           },
-          example: {
-            executives: [
-              {
-                id: "1",
-                fullName: "Engr. Tunde Adebayo",
-                associationRoleTitle: "President",
-                email: "tunde@email.com",
-              },
-            ],
-          },
+        },
+      },
+      responses: {
+        201: successResponse({
+          description: "Executive created successfully.",
+          dataSchema: { type: "object", properties: { executive: { $ref: "#/components/schemas/Executive" } } },
+          example: { executive: { id: "1", name: "Tolu Adeyemi", role: "President" } },
+        }),
+      },
+    },
+  },
+  "/executives/admin": {
+    get: {
+      tags: ["Executives"],
+      summary: "List executives for admin",
+      security: [{ bearerAuth: [] }],
+      parameters: [...paginationParams, { name: "isPublished", in: "query", schema: { type: "boolean" } }],
+      responses: {
+        200: successResponse({
+          description: "Admin executives fetched successfully.",
+          dataSchema: { type: "array", items: { $ref: "#/components/schemas/Executive" } },
+          metaSchema: listMetaSchema,
+          metaExample: listMetaExample,
+          example: [{ id: "1", name: "Tolu Adeyemi", role: "President" }],
+        }),
+      },
+    },
+  },
+  "/executives/{id}": {
+    get: {
+      tags: ["Executives"],
+      summary: "Get executive by id",
+      parameters: [{ $ref: "#/components/parameters/IdParam" }],
+      responses: {
+        200: successResponse({
+          description: "Executive fetched successfully.",
+          dataSchema: { type: "object", properties: { executive: { $ref: "#/components/schemas/Executive" } } },
+          example: { executive: { id: "1", name: "Tolu Adeyemi", role: "President" } },
+        }),
+      },
+    },
+    patch: {
+      tags: ["Executives"],
+      summary: "Update executive",
+      security: [{ bearerAuth: [] }],
+      parameters: [{ $ref: "#/components/parameters/IdParam" }],
+      responses: {
+        200: successResponse({
+          description: "Executive updated successfully.",
+          dataSchema: { type: "object", properties: { executive: { $ref: "#/components/schemas/Executive" } } },
+          example: { executive: { id: "1", name: "Tolu Adeyemi", role: "President" } },
+        }),
+      },
+    },
+    delete: {
+      tags: ["Executives"],
+      summary: "Delete executive",
+      security: [{ bearerAuth: [] }],
+      parameters: [{ $ref: "#/components/parameters/IdParam" }],
+      responses: {
+        200: successResponse({
+          description: "Executive deleted successfully.",
+          dataSchema: { type: "object", properties: { executive: { $ref: "#/components/schemas/Executive" } } },
+          example: { executive: { id: "1", name: "Tolu Adeyemi", role: "President" } },
         }),
       },
     },
@@ -328,6 +435,53 @@ export const authAndUserPaths = {
           metaSchema: listMetaSchema,
           metaExample: listMetaExample,
           example: [{ id: "1", fullName: "Tunde Adebayo", email: "tunde@email.com" }],
+        }),
+      },
+    },
+    post: {
+      tags: ["Alumni"],
+      summary: "Create alumni record",
+      security: [{ bearerAuth: [] }],
+      requestBody: jsonBody(
+        {
+          type: "object",
+          required: ["fullName", "email", "password", "phone", "graduationYear", "degree"],
+          properties: {
+            fullName: { type: "string" },
+            email: { type: "string", format: "email" },
+            password: { type: "string", format: "password" },
+            phone: { type: "string" },
+            graduationYear: { type: "string" },
+            degree: { type: "string" },
+            specialization: { type: "string" },
+            currentRole: { type: "string" },
+            company: { type: "string" },
+            location: { type: "string" },
+            bio: { type: "string" },
+            status: { type: "string", enum: ["pending", "approved"] },
+            associationRoleTitle: { type: "string" },
+            spotlightQuote: { type: "string" },
+            isMentorAvailable: { type: "boolean" },
+            isSpotlight: { type: "boolean" },
+            consent: { type: "boolean" },
+          },
+        },
+        {
+          fullName: "Tunde Adebayo",
+          email: "tunde@email.com",
+          password: "StrongPass123",
+          phone: "+2348012345678",
+          graduationYear: "2015",
+          degree: "B.Sc Architecture",
+          status: "approved",
+          consent: true,
+        },
+      ),
+      responses: {
+        201: successResponse({
+          description: "Alumnus created successfully.",
+          dataSchema: { type: "object", properties: { alumnus: { $ref: "#/components/schemas/User" } } },
+          example: { alumnus: { id: "1", fullName: "Tunde Adebayo", email: "tunde@email.com" } },
         }),
       },
     },

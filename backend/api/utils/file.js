@@ -1,7 +1,11 @@
 import fs from "fs/promises";
 import path from "path";
+import { fileURLToPath } from "url";
 
-export const uploadsDirectory = path.resolve(process.cwd(), "uploads");
+const currentFile = fileURLToPath(import.meta.url);
+const currentDirectory = path.dirname(currentFile);
+
+export const uploadsDirectory = path.resolve(currentDirectory, "../../../uploads");
 
 export const buildFileUrl = (req, file) => {
   if (!file) {

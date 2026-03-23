@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import InputField from "@/app/components/InputField";
 import CustomSelect from "../components/CustomSelect";
 import { request } from "../apiServices/requests";
@@ -42,7 +42,6 @@ const initialFormState: RegisterFormState = {
 
 export default function CompleteProfilePage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { setUser } = useStore();
  
 
@@ -204,11 +203,6 @@ export default function CompleteProfilePage() {
     years.push("Others, please specify");
     return years;
   }, []);
-
-  const submitLabel = 
-        registerMutation.isPending
-      ? "Submitting..."
-      : "Complete Registration";
 
   return (
     <section className="w-full mb-16">

@@ -16,26 +16,26 @@ export default function OAuthCallbackPage() {
   const { googleCallbackMutation } = useAppMutations();
 
   useEffect(() => {
-    if (!code || !state|| hasRun.current) return;
+    if (!code || !state || hasRun.current) return;
     hasRun.current = true;
 
     googleCallbackMutation.mutate(
-  { code, state },
-  {
-    onSuccess: (response) => {
-      const data = response.data;
+      { code, state },
+      {
+        onSuccess: (response) => {
+          const data = response.data;
 
-      const redirectUrl = data.requiresProfileCompletion
-        ? "/complete-profile"
-        : "/dashboard";
+          const redirectUrl = data.requiresProfileCompletion
+            ? "/complete-profile"
+            : "/dashboard";
 
-      setTimeout(() => {
-        router.replace(redirectUrl);
-      }, 1200);
-    },
-  }
-);
-  }, [code, state]);
+          setTimeout(() => {
+            router.replace(redirectUrl);
+          }, 1200);
+        },
+      },
+    );
+  }, [code, googleCallbackMutation, router, state]);
 
   const isLoading = googleCallbackMutation.isPending;
   const isError = googleCallbackMutation.isError;

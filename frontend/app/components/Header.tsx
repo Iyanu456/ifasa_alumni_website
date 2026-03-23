@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Menu, X, PanelLeft } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { usePathname } from "next/navigation";
 import AdminSidebar from "../admin/components/AdminSidebar";
 import { useStore } from "../lib/store";
@@ -37,9 +37,7 @@ export default function Header() {
   const [hidden, setHidden] = useState(false);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const pathname = usePathname();
-  const isActive = pathname;
   const isAdminRoute = pathname.startsWith("/admin");
   const isAdminLogin = pathname === "/admin/login";
   const { user } = useStore();
@@ -87,7 +85,7 @@ export default function Header() {
       window.removeEventListener("scroll", handleScroll);
       clearTimeout(scrollTimeout);
     };
-  }, [lastScrollY]);
+  }, [isAdminRoute, lastScrollY]);
 
   return (
     <>
@@ -132,8 +130,9 @@ export default function Header() {
             {!isAdminRoute && <NavLink href="/events" label="Events" />}
             {!isAdminRoute && <NavLink href="/community" label="Community" />}
             {!isAdminRoute && <NavLink href="/gallery" label="Gallery" />}
-            {!isAdminRoute && <NavLink href="/contact" label="Contact us" />}
-            {!isAdminRoute && user?.email && <NavLink href="/dashboard" label="profile" />}
+            {!isAdminRoute && user?.role !== "admin" && <NavLink href="/contact" label="Contact us" />}
+            {user?.email && <NavLink href="/dashboard" label="profile" />}
+            {user?.role==="admin" && <NavLink href="/admin" label="admin" />}
           </div>
 
           {/* Mobile Toggle */}

@@ -68,7 +68,7 @@ export default function GalleryPage() {
         <section className="w-[92%] sm:w-[90%] md:w-[80%] mx-auto columns-1 sm:columns-2 md:columns-3 gap-4">
           {filteredImages.map((img) => (
             <div
-              key={img.id}
+              key={img._id}
               className="group mb-4 break-inside-avoid overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm hover:shadow-md transition"
             >
               <button

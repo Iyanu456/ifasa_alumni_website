@@ -85,6 +85,40 @@ export type RegisterBody = {
 
 export type ProfileUpdateBody = Omit<RegisterBody, "email" | "password">;
 
+export type ProfileUpdatePayload = {
+  fullName: string;
+  phone: string;
+  graduationYear: string;
+  degree: string;
+  specialization?: string;
+  currentRole?: string;
+  company?: string;
+  location?: string;
+  bio?: string;
+  consent: boolean;
+  avatar?: File | null;
+};
+
+export type AdminAlumniFormBody = {
+  fullName: string;
+  email: string;
+  password: string;
+  phone: string;
+  graduationYear: string;
+  degree: string;
+  specialization?: string;
+  currentRole?: string;
+  company?: string;
+  location?: string;
+  bio?: string;
+  status?: ApprovalStatus;
+  associationRoleTitle?: string;
+  spotlightQuote?: string;
+  isMentorAvailable?: boolean;
+  isSpotlight?: boolean;
+  consent?: boolean;
+};
+
 export type Settings = {
   siteName: string;
   siteDescription: string;
@@ -97,8 +131,25 @@ export type Settings = {
     twitter?: string;
   };
   donationLink?: string;
+  donationAccountNumber?: string;
+  donationBankName?: string;
+  footerText?: string;
   allowRegistrations: boolean;
   enableDonations: boolean;
+};
+
+export type Executive = {
+  _id: string;
+  name: string;
+  email: string;
+  profilePicture?: string | null;
+  role: string;
+  position: string;
+  title: string;
+  sortOrder?: number;
+  isPublished: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 };
 
 export type Event = {
@@ -266,6 +317,16 @@ export type NewsFormBody = {
   tags?: string[] | string;
   status?: "draft" | "published";
   isFeatured?: boolean;
+};
+
+export type ExecutiveFormBody = {
+  name: string;
+  email: string;
+  role: string;
+  position: string;
+  title: string;
+  sortOrder?: number;
+  isPublished?: boolean;
 };
 
 export type GalleryFormBody = {

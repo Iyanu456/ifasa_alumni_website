@@ -71,6 +71,10 @@ const env = Object.freeze({
     process.env.VERIFICATION_TOKEN_TTL_MINUTES,
     24 * 60,
   ),
+  passwordResetTokenTtlMinutes: toNumber(
+    process.env.PASSWORD_RESET_TOKEN_TTL_MINUTES,
+    60,
+  ),
   maxFileSizeBytes: toNumber(process.env.MAX_FILE_SIZE_MB, 5) * 1024 * 1024,
   rateLimitWindowMs: toNumber(process.env.RATE_LIMIT_WINDOW_MS, 15 * 60 * 1000),
   rateLimitMax: toNumber(process.env.RATE_LIMIT_MAX, 200),
@@ -84,7 +88,7 @@ const env = Object.freeze({
   googleClientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
   googleRedirectUri:
     process.env.GOOGLE_REDIRECT_URI ||
-    `${process.env.SERVER_URL || `http://localhost:${port}`}/api/v1/auth/google/callback`,
+    `${process.env.SERVER_URL || `http://localhost:${port}`}/api/auth/google/callback`,
   googleOauthStateTtlMinutes: toNumber(
     process.env.GOOGLE_OAUTH_STATE_TTL_MINUTES,
     10,
@@ -102,6 +106,10 @@ const env = Object.freeze({
   adminFullName: process.env.ADMIN_FULL_NAME || "IFASA Administrator",
   adminRoleTitle: process.env.ADMIN_ROLE_TITLE || "Administrator",
   redisUrl: process.env.REDIS_URL || "redis://localhost:6379",
+  resendApiKey: process.env.RESEND_API_KEY || "",
+  resendSenderEmail: process.env.RESEND_SENDER_EMAIL || "",
+  resendSenderName: process.env.RESEND_SENDER_NAME || "",
+  resendEmailFrom: process.env.RESEND_EMAIL_FROM || "",
 });
 
 if (env.isProduction && !process.env.JWT_SECRET) {

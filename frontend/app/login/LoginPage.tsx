@@ -112,7 +112,7 @@ export default function LoginPage() {
         return;
       }
 
-      router.push("/dashboard");
+      router.push(response.data.user.role === "admin" ? "/admin" : "/dashboard");
     } catch (error) {
       setErrorMessage(getApiErrorMessage(error, "Unable to sign in."));
     }
@@ -178,6 +178,12 @@ export default function LoginPage() {
             required
             onChange={(val) => updateField("password", val)}
           />
+
+          <div className="text-right">
+            <Link href="/forgot-password" className="text-sm text-primary hover:underline">
+              Forgot password?
+            </Link>
+          </div>
 
           <button
             type="submit"

@@ -1,63 +1,22 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useState } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import InputField from "../components/InputField";
 import { request } from "../apiServices/requests";
-
-import {
-  getApiErrorMessage,
-  useAppMutations,
-} from "../apiServices/mutations";
-import { useStore } from "../lib/store";
-
-type RegisterFormState = {
-  fullName: string;
-  email: string;
-  phone: string;
-  graduationYear: string;
-  degree: string;
-  specialization: string;
-  currentRole: string;
-  company: string;
-  location: string;
-  bio: string;
-  consent: boolean;
-};
-
-const initialFormState: RegisterFormState = {
-  fullName: "",
-  email: "",
-  phone: "",
-  graduationYear: "",
-  degree: "",
-  specialization: "",
-  currentRole: "",
-  company: "",
-  location: "",
-  bio: "",
-  consent: false,
-};
+import { getApiErrorMessage, useAppMutations } from "../apiServices/mutations";
 
 export default function RegisterPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const { setUser } = useStore();
-
   const [auth, setAuth] = useState({
     email: "",
     password: "",
   });
-  const [form, setForm] = useState<RegisterFormState>(initialFormState);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const { registerMutation } = useAppMutations();
-
-
-
-  
 
   const handleAuthSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -66,28 +25,21 @@ export default function RegisterPage() {
       return;
     }
 
-    console.log("email and password", auth.email
-    )
-
-    registerMutation.mutate({
+    registerMutation.mutate(
+      {
         email: auth.email,
         password: auth.password,
-      }, {
+      },
+      {
         onSuccess: () => {
-
-      setTimeout(() => {
-        router.replace("/email-sent");
-      }, 1200);
-    },
-      }
- 
-    
+          setTimeout(() => {
+            router.replace("/email-sent");
+          }, 1200);
+        },
+      },
     );
-
-    return
   };
 
- 
   const handleGoogleRegister = async () => {
     setErrorMessage(null);
     setStatusMessage(null);
@@ -105,7 +57,6 @@ export default function RegisterPage() {
       setIsGoogleLoading(false);
     }
   };
-
 
   return (
     <section className="w-full mb-16">

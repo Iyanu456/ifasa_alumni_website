@@ -6,6 +6,7 @@ import Image from "next/image";
 import {
   Calendar,
   ChevronLeft,
+  Contact,
   DollarSign,
   Image as ImageIcon,
   LayoutDashboard,
@@ -21,6 +22,7 @@ const menu = [
   { label: "Dashboard", icon: LayoutDashboard, tab: "dashboard" },
   { label: "Alumni", icon: Users, tab: "alumni" },
   { label: "Events", icon: Calendar, tab: "events" },
+  { label: "Executives", icon: Contact, tab: "executives" },
   { label: "Opportunities", icon: Briefcase, tab: "opportunities" },
   { label: "News", icon: Newspaper, tab: "news" },
   { label: "Gallery", icon: ImageIcon, tab: "gallery" },

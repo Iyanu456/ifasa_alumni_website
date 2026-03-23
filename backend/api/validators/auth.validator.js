@@ -41,3 +41,13 @@ export const googleInitiateValidation = [
 export const resendVerificationValidation = [
   body("email").isEmail().normalizeEmail().withMessage("Valid email is required."),
 ];
+
+export const forgotPasswordValidation = [
+  body("email").isEmail().normalizeEmail().withMessage("Valid email is required."),
+];
+
+export const resetPasswordValidation = [
+  body("password")
+    .isLength({ min: 8 })
+    .withMessage("Password must be at least 8 characters long."),
+];

@@ -14,6 +14,10 @@ const DEFAULT_SETTINGS = {
     twitter: "",
   },
   donationLink: "",
+  donationAccountNumber: "",
+  donationBankName: "",
+  footerText:
+    "Connecting alumni of the Department of Architecture, Obafemi Awolowo University.",
   allowRegistrations: true,
   enableDonations: true,
 };
@@ -42,6 +46,9 @@ export const getPublicSettings = async () => {
     contactAddress: settings.contactAddress,
     socialLinks: settings.socialLinks,
     donationLink: settings.donationLink,
+    donationAccountNumber: settings.donationAccountNumber,
+    donationBankName: settings.donationBankName,
+    footerText: settings.footerText,
     allowRegistrations: settings.allowRegistrations,
     enableDonations: settings.enableDonations,
   };
@@ -57,6 +64,11 @@ export const updateSettings = async (payload, actor) => {
   settings.contactPhone = payload.contactPhone ?? settings.contactPhone;
   settings.contactAddress = payload.contactAddress ?? settings.contactAddress;
   settings.donationLink = payload.donationLink ?? settings.donationLink;
+  settings.donationAccountNumber =
+    payload.donationAccountNumber ?? settings.donationAccountNumber;
+  settings.donationBankName =
+    payload.donationBankName ?? settings.donationBankName;
+  settings.footerText = payload.footerText ?? settings.footerText;
 
   settings.socialLinks = {
     instagram:
