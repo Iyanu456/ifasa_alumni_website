@@ -1,190 +1,340 @@
 "use client";
 
-import { useState, FormEvent } from "react";
+import { FormEvent, useMemo, useState } from "react";
 import Link from "next/link";
-import { HeartHandshake, Building2, GraduationCap, Wrench } from "lucide-react";
+import {
+  Building2,
+  GraduationCap,
+  HeartHandshake,
+  Wrench,
+} from "lucide-react";
+import { getApiErrorMessage, useAppMutations } from "../apiServices/mutations";
+import { useDonationSummaryQuery, usePublicSettingsQuery } from "../apiServices/queries";
+import { formatCurrency } from "../lib/formatters";
+
+const impactCards = [
+  {
+    title: "Student Support",
+    description: "Scholarships, studio materials, and learning resources.",
+    icon: GraduationCap,
+  },
+  {
+    title: "Studio Improvements",
+    description: "Equipment upgrades and workspace enhancements.",
+    icon: Building2,
+  },
+  {
+    title: "Events & Workshops",
+    description: "Funding alumni events, talks, and professional workshops.",
+    icon: Wrench,
+  },
+  {
+    title: "Mentorship Programs",
+    description: "Supporting mentorship initiatives for students and young graduates.",
+    icon: HeartHandshake,
+  },
+];
 
 export default function DonatePage() {
-  const [amount, setAmount] = useState("");
+  const [donationForm, setDonationForm] = useState({
+    amount: "",
+    donorName: "",
+    email: "",
+    note: "",
+  });
   const [sponsorForm, setSponsorForm] = useState({
     name: "",
     email: "",
     organization: "",
     message: "",
   });
+  const [donationNotice, setDonationNotice] = useState("");
+  const [sponsorshipNotice, setSponsorshipNotice] = useState("");
+  const { createDonationMutation, createSponsorshipMutation } = useAppMutations();
+  const summaryQuery = useDonationSummaryQuery();
+  const settingsQuery = usePublicSettingsQuery();
 
-  const handleDonate = () => {
-    alert(`Proceed to donate ₦${amount || "0"} (frontend only for now)`);
+  const summary = summaryQuery.data?.data;
+  const settings = settingsQuery.data?.data.settings;
+
+  const donationDisabled = settings?.enableDonations === false;
+
+  const formattedSummary = useMemo(
+    () => [
+      {
+        label: "Total Donations",
+        value: formatCurrency(summary?.totalAmount || 0),
+      },
+      {
+        label: "Total Donors",
+        value: String(summary?.donorCount || 0),
+      },
+      {
+        label: "Pending Donations",
+        value: String(summary?.pendingDonations || 0),
+      },
+    ],
+    [summary],
+  );
+
+  const handleDonationSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setDonationNotice("");
+
+    try {
+      const response = await createDonationMutation.mutateAsync({
+        amount: Number(donationForm.amount),
+        donorName: donationForm.donorName || undefined,
+        email: donationForm.email || undefined,
+        note: donationForm.note || undefined,
+      });
+
+      setDonationForm({
+        amount: "",
+        donorName: "",
+        email: "",
+        note: "",
+      });
+
+      const checkoutUrl = response.data.checkoutUrl || settings?.donationLink;
+
+      if (checkoutUrl && typeof window !== "undefined") {
+        window.location.assign(checkoutUrl);
+        return;
+      }
+
+      setDonationNotice("Your donation intent has been recorded successfully.");
+    } catch {
+      setDonationNotice("");
+    }
   };
 
-  const handleSponsorSubmit = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    console.log(sponsorForm);
-    alert("Sponsorship request sent! (frontend only for now)");
+  const handleSponsorSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setSponsorshipNotice("");
+
+    try {
+      await createSponsorshipMutation.mutateAsync(sponsorForm);
+      setSponsorForm({
+        name: "",
+        email: "",
+        organization: "",
+        message: "",
+      });
+      setSponsorshipNotice("Your sponsorship request has been submitted.");
+    } catch {
+      setSponsorshipNotice("");
+    }
   };
 
   return (
-    <main className="bg-[#f8f8f8] min-h-screen pt-[6em] pb-[5em]">
-      {/* Hero */}
-      <section className="w-[92%] sm:w-[90%] md:w-[80%] mx-auto mb-14 text-center">
-        <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold mb-3">
-          Donate & Sponsor
+    <main className="min-h-screen bg-[#f8f8f8] pt-[6em] pb-[5em]">
+      <section className="mx-auto mb-14 w-[92%] text-center sm:w-[90%] md:w-[80%]">
+        <h1 className="mb-3 text-2xl font-semibold sm:text-3xl md:text-4xl">
+          Donate &amp; Sponsor
         </h1>
-        <p className="text-gray-600 max-w-2xl mx-auto">
-          Your support helps strengthen the alumni community, empower students,
-          and improve learning facilities within the Department of Architecture,
+        <p className="mx-auto max-w-2xl text-gray-600">
+          Your support strengthens the alumni community, empowers students, and
+          improves learning facilities within the Department of Architecture,
           OAU.
         </p>
       </section>
 
-      {/* What Your Support Does */}
-      <section className="w-[92%] sm:w-[90%] md:w-[80%] mx-auto mb-16 grid sm:grid-cols-2 md:grid-cols-4 gap-6">
-        <div className="bg-white rounded-2xl p-6 border border-gray-100 text-center">
-          <GraduationCap className="mx-auto text-primary mb-3" />
-          <h3 className="font-medium mb-1">Student Support</h3>
-          <p className="text-sm text-gray-600">
-            Scholarships, studio materials, and learning resources.
+      <section className="mx-auto mb-10 grid w-[92%] grid-cols-1 gap-4 sm:w-[90%] md:w-[80%] md:grid-cols-3">
+        {formattedSummary.map((item) => (
+          <div key={item.label} className="rounded-2xl border border-gray-100 bg-white p-5">
+            <p className="text-sm text-gray-500">{item.label}</p>
+            <p className="mt-1 text-2xl font-semibold">{item.value}</p>
+          </div>
+        ))}
+      </section>
+
+      <section className="mx-auto mb-16 grid w-[92%] gap-6 sm:w-[90%] md:w-[80%] sm:grid-cols-2 md:grid-cols-4">
+        {impactCards.map(({ title, description, icon: Icon }) => (
+          <div
+            key={title}
+            className="rounded-2xl border border-gray-100 bg-white p-6 text-center"
+          >
+            <Icon className="mx-auto mb-3 text-primary" />
+            <h3 className="mb-1 font-medium">{title}</h3>
+            <p className="text-sm text-gray-600">{description}</p>
+          </div>
+        ))}
+      </section>
+
+      <section className="mx-auto mb-16 grid h-[max-content] w-[92%] items-start gap-8 sm:w-[90%] md:w-[80%] md:grid-cols-2">
+        <div className="grid h-full rounded-2xl border border-gray-100 bg-white p-6">
+          <h2 className="mb-3 text-lg font-semibold">Make a Donation</h2>
+          <p className="mb-4 text-sm text-gray-600">
+            Your support funds mentorship programs, student support initiatives,
+            studio improvements, and alumni-led projects.
+          </p>
+
+          <form onSubmit={handleDonationSubmit} className="flex flex-col gap-3">
+            <input
+              type="number"
+              min={1}
+              required
+              disabled={donationDisabled || createDonationMutation.isPending}
+              placeholder="Enter donation amount (NGN)"
+              value={donationForm.amount}
+              onChange={(event) =>
+                setDonationForm((prev) => ({ ...prev, amount: event.target.value }))
+              }
+              className="w-full rounded-lg border border-gray-300 bg-[#FAFAFA] px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/30"
+            />
+
+            <input
+              type="text"
+              placeholder="Full name (optional)"
+              value={donationForm.donorName}
+              onChange={(event) =>
+                setDonationForm((prev) => ({ ...prev, donorName: event.target.value }))
+              }
+              className="w-full rounded-lg border border-gray-300 bg-[#FAFAFA] px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/30"
+            />
+
+            <input
+              type="email"
+              placeholder="Email address (optional, for receipt)"
+              value={donationForm.email}
+              onChange={(event) =>
+                setDonationForm((prev) => ({ ...prev, email: event.target.value }))
+              }
+              className="w-full rounded-lg border border-gray-300 bg-[#FAFAFA] px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/30"
+            />
+
+            <textarea
+              rows={4}
+              placeholder="Leave a note (optional)"
+              value={donationForm.note}
+              onChange={(event) =>
+                setDonationForm((prev) => ({ ...prev, note: event.target.value }))
+              }
+              className="w-full rounded-lg border border-gray-300 bg-[#FAFAFA] px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/30"
+            />
+
+            <button
+              type="submit"
+              disabled={donationDisabled || createDonationMutation.isPending}
+              className="mt-auto w-full rounded-lg bg-primary py-3 font-medium text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {donationDisabled
+                ? "Donations are currently disabled"
+                : createDonationMutation.isPending
+                  ? "Processing..."
+                  : "Proceed to Donate"}
+            </button>
+          </form>
+
+          {donationNotice ? (
+            <p className="mt-3 text-sm text-green-600">{donationNotice}</p>
+          ) : null}
+
+          {createDonationMutation.error ? (
+            <p className="mt-3 text-sm text-red-500">
+              {getApiErrorMessage(
+                createDonationMutation.error,
+                "We could not create this donation right now.",
+              )}
+            </p>
+          ) : null}
+
+          <p className="mt-3 text-xs text-gray-500">
+            {settings?.donationLink
+              ? "You will be redirected to the configured payment link after submission."
+              : "A payment link can be configured from the admin settings."}
           </p>
         </div>
 
-        <div className="bg-white rounded-2xl p-6 border border-gray-100 text-center">
-          <Building2 className="mx-auto text-primary mb-3" />
-          <h3 className="font-medium mb-1">Studio Improvements</h3>
-          <p className="text-sm text-gray-600">
-            Equipment upgrades and workspace enhancements.
+        <div className="rounded-2xl border border-gray-100 bg-white p-6">
+          <h2 className="mb-3 text-lg font-semibold">Become a Sponsor / Partner</h2>
+          <p className="mb-4 text-sm text-gray-600">
+            Organizations and individuals can support specific programs, events,
+            or facilities. Tell us how you would like to partner with us.
           </p>
-        </div>
 
-        <div className="bg-white rounded-2xl p-6 border border-gray-100 text-center">
-          <Wrench className="mx-auto text-primary mb-3" />
-          <h3 className="font-medium mb-1">Events & Workshops</h3>
-          <p className="text-sm text-gray-600">
-            Funding alumni events, talks, and professional workshops.
-          </p>
-        </div>
+          <form onSubmit={handleSponsorSubmit} className="space-y-3">
+            <input
+              type="text"
+              placeholder="Your name"
+              required
+              value={sponsorForm.name}
+              onChange={(event) =>
+                setSponsorForm((prev) => ({ ...prev, name: event.target.value }))
+              }
+              className="w-full rounded-lg border border-gray-300 bg-[#FAFAFA] px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/30"
+            />
 
-        <div className="bg-white rounded-2xl p-6 border border-gray-100 text-center">
-          <HeartHandshake className="mx-auto text-primary mb-3" />
-          <h3 className="font-medium mb-1">Mentorship Programs</h3>
-          <p className="text-sm text-gray-600">
-            Supporting mentorship initiatives for students and young graduates.
-          </p>
+            <input
+              type="email"
+              placeholder="Email address"
+              required
+              value={sponsorForm.email}
+              onChange={(event) =>
+                setSponsorForm((prev) => ({ ...prev, email: event.target.value }))
+              }
+              className="w-full rounded-lg border border-gray-300 bg-[#FAFAFA] px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/30"
+            />
+
+            <input
+              type="text"
+              placeholder="Organization (optional)"
+              value={sponsorForm.organization}
+              onChange={(event) =>
+                setSponsorForm((prev) => ({
+                  ...prev,
+                  organization: event.target.value,
+                }))
+              }
+              className="w-full rounded-lg border border-gray-300 bg-[#FAFAFA] px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/30"
+            />
+
+            <textarea
+              rows={4}
+              placeholder="How would you like to sponsor or partner with us?"
+              required
+              value={sponsorForm.message}
+              onChange={(event) =>
+                setSponsorForm((prev) => ({ ...prev, message: event.target.value }))
+              }
+              className="w-full rounded-lg border border-gray-300 bg-[#FAFAFA] px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/30"
+            />
+
+            <button
+              type="submit"
+              disabled={createSponsorshipMutation.isPending}
+              className="w-full rounded-lg bg-primary py-3 font-medium text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {createSponsorshipMutation.isPending
+                ? "Submitting..."
+                : "Submit Sponsorship Request"}
+            </button>
+          </form>
+
+          {sponsorshipNotice ? (
+            <p className="mt-3 text-sm text-green-600">{sponsorshipNotice}</p>
+          ) : null}
+
+          {createSponsorshipMutation.error ? (
+            <p className="mt-3 text-sm text-red-500">
+              {getApiErrorMessage(
+                createSponsorshipMutation.error,
+                "We could not submit your sponsorship request.",
+              )}
+            </p>
+          ) : null}
         </div>
       </section>
 
-      {/* Donation & Sponsorship */}
-<section className="w-[92%] sm:w-[90%] md:w-[80%] mx-auto mb-16 grid md:grid-cols-2 gap-8 items-start h-[max-content]">
-  {/* Donation Card */}
-  <div className="bg-white rounded-2xl p-6 h-full grid border border-gray-100">
-    <h2 className="text-lg font-semibold mb-3">Make a Donation</h2>
-    <p className="text-sm text-gray-600 mb-4">
-      Your support helps fund mentorship programs, student support initiatives,
-      studio improvements, and alumni-led projects. Any amount makes a
-      meaningful impact.
-    </p>
-
-    <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        alert("Proceed to donation gateway (frontend only for now)");
-      }}
-      className="flex flex-col gap-3"
-    >
-      <input
-        type="number"
-        min={1}
-        placeholder="Enter donation amount (₦)"
-        required
-        className="w-full rounded-lg px-4 py-3 bg-[#FAFAFA] border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/30"
-      />
-
-      <input
-        type="text"
-        placeholder="Full name (optional)"
-        className="w-full rounded-lg px-4 py-3 bg-[#FAFAFA] border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/30"
-      />
-
-      <input
-        type="email"
-        placeholder="Email address (optional, for receipt)"
-        className="w-full rounded-lg px-4 py-3 bg-[#FAFAFA] border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/30"
-      />
-
-      <button
-        type="submit"
-        className="w-full mb-0 mt-auto bg-primary text-white py-3 rounded-lg font-medium hover:opacity-90 transition"
-      >
-        Proceed to Donate
-      </button>
-    </form>
-
-    <p className="text-xs text-gray-500 mt-3">
-      Secure payment by Paystack.
-    </p>
-  </div>
-
-  {/* Sponsorship Card */}
-  <div className="bg-white rounded-2xl p-6 border border-gray-100">
-    <h2 className="text-lg font-semibold mb-3">
-      Become a Sponsor / Partner
-    </h2>
-    <p className="text-sm text-gray-600 mb-4">
-      Organizations and individuals can support specific programs, events, or
-      facilities. Tell us how you’d like to partner with us.
-    </p>
-
-    <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        alert("Sponsorship request sent! (frontend only for now)");
-      }}
-      className="space-y-3"
-    >
-      <input
-        type="text"
-        placeholder="Your name"
-        required
-        className="w-full rounded-lg px-4 py-3 bg-[#FAFAFA] border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/30"
-      />
-
-      <input
-        type="email"
-        placeholder="Email address"
-        required
-        className="w-full rounded-lg px-4 py-3 bg-[#FAFAFA] border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/30"
-      />
-
-      <textarea
-        rows={4}
-        placeholder="How would you like to sponsor or partner with us?"
-        required
-        className="w-full rounded-lg px-4 py-3 bg-[#FAFAFA] border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/30"
-      />
-
-      <button
-        type="submit"
-        className="w-full bg-primary text-white py-3 rounded-lg font-medium hover:opacity-90 transition"
-      >
-        Submit Sponsorship Request
-      </button>
-
-      <p className="text-xs text-gray-500 mt-3">
-      Secure payment by Paystack.
-    </p>
-    </form>
-  </div>
-</section>
-
-
-      {/* Trust Footer */}
-      <section className="w-full bg-white py-12 text-center border-t border-gray-100">
+      <section className="w-full border-t border-gray-100 bg-white py-12 text-center">
         <p className="text-sm text-gray-600">
           All donations and sponsorships go directly towards alumni and
           departmental development initiatives.
         </p>
         <Link
           href="/contact"
-          className="inline-block mt-3 text-primary font-medium hover:underline"
+          className="mt-3 inline-block font-medium text-primary hover:underline"
         >
           Have questions? Contact us →
         </Link>

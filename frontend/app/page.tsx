@@ -1,14 +1,20 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import EventCard from "./components/Homepage/EventCard";
 import StatCard from "./components/Homepage/StatsCard";
 import AlumniSpotlight from "./components/Homepage/AlumniSpotlight";
 import NewsCard from "./components/Homepage/NewsCard";
+import { useHomeDashboardQuery } from "./apiServices/queries";
+import { formatDate } from "./lib/formatters";
 
 export default function Home() {
+  const { data, isLoading, isError } = useHomeDashboardQuery();
+  const dashboard = data?.data;
+
   return (
     <main className="grid bg-[#f7f7f7] overflow-x-hidden mt-[-1em]">
-      {/* Hero Section */}
       <section className="relative grid h-max">
         <Image
           unoptimized
@@ -32,7 +38,7 @@ export default function Home() {
               the future. Stay connected, give back, and grow together.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mx-auto mt-3 sm:mt-4 w-full sm:w-auto max-sm:w-[90%] max-sm:mt[2em]">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mx-auto mt-3 sm:mt-4 w-full sm:w-auto max-sm:w-[90%]">
               <Link
                 href="/register"
                 className="text-center bg-primary px-6 sm:px-8 py-3 text-white rounded-full md:text-lg font-medium shadow-2xl transition hover:scale-[1.02] active:scale-[0.98]"
@@ -51,22 +57,30 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Quick Stats */}
       <section className="w-[92%] sm:w-[90%] md:w-[80%] mx-auto -mt-[2.5em] sm:-mt-[3em] relative z-10">
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 bg-white rounded-2xl shadow-lg p-4 sm:p-6">
-          <StatCard label="Registered Alumni" value="1,250+" />
-          <StatCard label="Countries Represented" value="18" />
-          <StatCard label="Mentors Available" value="120+" />
-          <StatCard label="Active Events" value="6" />
+          <StatCard
+            label="Registered Alumni"
+            value={isLoading ? "..." : String(dashboard?.stats.registeredAlumni ?? 0)}
+          />
+          <StatCard
+            label="Countries Represented"
+            value={isLoading ? "..." : String(dashboard?.stats.countriesRepresented ?? 0)}
+          />
+          <StatCard
+            label="Mentors Available"
+            value={isLoading ? "..." : String(dashboard?.stats.mentorsAvailable ?? 0)}
+          />
+          <StatCard
+            label="Active Events"
+            value={isLoading ? "..." : String(dashboard?.stats.activeEvents ?? 0)}
+          />
         </div>
       </section>
 
-      {/* About / Mission */}
       <section className="w-[92%] sm:w-[90%] md:w-[70%] mx-auto pt-[2em] mb-[2em] sm:my-[4em] grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-10 items-center">
         <div>
-          <h2 className="text-xl sm:text-2xl font-semibold mb-3">
-            Our Mission
-          </h2>
+          <h2 className="text-xl sm:text-2xl font-semibold mb-3">Our Mission</h2>
           <p className="text-gray-600 leading-relaxed text-[1em] sm:text-base">
             The Ife Architecture Alumni Association exists to foster lifelong
             connections among graduates, support current students through
@@ -91,18 +105,31 @@ export default function Home() {
         />
       </section>
 
-      {/* Events Section */}
       <section className="w-full h-max my-[2em] py-[4em] bg-white">
-        <h2 className="text-center text-xl sm:text-2xl font-semibold">
-          Upcoming Events
-        </h2>
+        <h2 className="text-center text-xl sm:text-2xl font-semibold">Upcoming Events</h2>
 
         <div className="w-[92%] sm:w-[90%] md:w-[80%] mt-[1.5em] sm:mt-[2em] mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-[1em]">
-          <EventCard />
-          <EventCard />
-          <EventCard />
-          <EventCard />
+          {isLoading && Array.from({ length: 4 }).map((_, index) => (
+            <div key={index} className="h-[320px] rounded-xl bg-gray-100 animate-pulse" />
+          ))}
+
+          {!isLoading &&
+            dashboard?.featuredEvents.slice(0, 4).map((event) => (
+              <EventCard
+                key={event.id}
+                title={event.title}
+                date={formatDate(event.date)}
+                location={event.location}
+                description={event.description}
+                image={event.coverImageUrl || "https://picsum.photos/seed/event/800/600"}
+                href="/events"
+              />
+            ))}
         </div>
+
+        {!isLoading && !dashboard?.featuredEvents.length && (
+          <p className="text-center text-gray-500 mt-6">No upcoming events yet.</p>
+        )}
 
         <div className="mt-6 sm:mt-8 text-center">
           <Link
@@ -114,119 +141,104 @@ export default function Home() {
         </div>
       </section>
 
-
-      {/* Featured Opportunities */}
-<section className="w-[92%] sm:w-[90%] md:w-[80%] mx-auto my-[3em] sm:my-[4em]">
-  <h2 className="text-center text-xl sm:text-2xl font-semibold mb-5 sm:mb-6">
-    Featured Opportunities
-  </h2>
-
-  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
-    <NewsCard
-            title="Graduate Architecture Scholarship"
-            date="Jan 2026"
-            excerpt="Fully funded postgraduate scholarship for architecture graduates pursuing sustainable design research."
-            containerClassName="bg-white shadow-xl border border-gray-500/30"
-            tag={"Scholarship"}
-            image="https://picsum.photos/seed/alumni-event/800/600"
-          />
-
-    <NewsCard
-            title="Junior Architect – Lagos Studio"
-            date="Jan 2026"
-            excerpt="Architecture firm seeking a talented junior architect with strong Revit and design visualization skills."
-            containerClassName="bg-white shadow-xl border border-gray-500/30"
-            tag={"Job"}
-            image="https://picsum.photos/seed/alumni-job/800/600"
-          />
-
-    <NewsCard
-
-              title="Urban Innovation Fellowship"
-              date="Jan 2026"
-              excerpt="A global fellowship program supporting young architects working on urban sustainability solutions."
-              containerClassName="bg-white shadow-xl border border-gray-500/30"
-              tag={"Fellowship"}
-              image="https://picsum.photos/seed/alumni-fellowship/800/600"
-            />
-  
-
-    
-
-
-    
-
-
-    
-
-  </div>
-
-  <div className="text-center mt-6">
-    <Link
-      href="/opportunities"
-      className="text-primary font-medium hover:underline"
-    >
-      View all opportunities →
-    </Link>
-  </div>
-</section>
-
-      {/* Alumni Spotlight */}
-    <section className="w-full bg-white">
       <section className="w-[92%] sm:w-[90%] md:w-[80%] mx-auto my-[3em] sm:my-[4em]">
         <h2 className="text-center text-xl sm:text-2xl font-semibold mb-5 sm:mb-6">
-          Alumni Spotlight
+          Featured Opportunities
         </h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
-          <AlumniSpotlight
-            name="Tunde Adebayo"
-            role="Senior Architect, Lagos"
-            quote="Being part of the Ife Architecture alumni network has opened doors to mentorship and collaborations I never imagined."
-          />
-          <AlumniSpotlight
-            name="Funke Oladipo"
-            role="Urban Designer, UK"
-            quote="Staying connected to my roots while working abroad has been invaluable to my growth."
-          />
-          <AlumniSpotlight
-            name="Ibrahim Musa"
-            role="Project Manager, Abuja"
-            quote="The alumni events helped me transition smoothly into professional practice."
-          />
+          {isLoading && Array.from({ length: 3 }).map((_, index) => (
+            <div key={index} className="h-[320px] rounded-xl bg-gray-100 animate-pulse" />
+          ))}
+
+          {!isLoading &&
+            dashboard?.featuredOpportunities.slice(0, 3).map((item) => (
+              <NewsCard
+                key={item.id}
+                title={item.title}
+                date={item.deadline ? formatDate(item.deadline) : undefined}
+                excerpt={item.description}
+                containerClassName="bg-white shadow-xl border border-gray-500/30"
+                tag={item.category}
+                image={item.coverImageUrl || "https://picsum.photos/seed/opportunity/800/600"}
+                organization={item.organization}
+              />
+            ))}
+        </div>
+
+        {!isLoading && !dashboard?.featuredOpportunities.length && (
+          <p className="text-center text-gray-500 mt-6">No featured opportunities available.</p>
+        )}
+
+        <div className="text-center mt-6">
+          <Link href="/opportunities" className="text-primary font-medium hover:underline">
+            View all opportunities →
+          </Link>
         </div>
       </section>
-    </section>
 
-      {/* News / Updates */}
+      <section className="w-full bg-white">
+        <section className="w-[92%] sm:w-[90%] md:w-[80%] mx-auto my-[3em] sm:my-[4em]">
+          <h2 className="text-center text-xl sm:text-2xl font-semibold mb-5 sm:mb-6">
+            Alumni Spotlight
+          </h2>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
+            {isLoading && Array.from({ length: 3 }).map((_, index) => (
+              <div key={index} className="h-[220px] rounded-xl bg-gray-100 animate-pulse" />
+            ))}
+
+            {!isLoading &&
+              dashboard?.spotlightAlumni.slice(0, 3).map((alumnus) => (
+                <AlumniSpotlight
+                  key={alumnus.id}
+                  name={alumnus.fullName}
+                  role={[alumnus.currentRole, alumnus.location].filter(Boolean).join(", ")}
+                  quote={
+                    alumnus.spotlightQuote ||
+                    alumnus.bio ||
+                    "Featured alumni story coming soon."
+                  }
+                  image={alumnus.avatarUrl || undefined}
+                />
+              ))}
+          </div>
+
+          {!isLoading && !dashboard?.spotlightAlumni.length && (
+            <p className="text-center text-gray-500 mt-6">No spotlight alumni available yet.</p>
+          )}
+        </section>
+      </section>
+
       <section className="w-full bg-gray-50 py-[3em] sm:py-[4em] mb-[4em]">
         <h2 className="text-center text-xl sm:text-2xl font-semibold mb-5 sm:mb-6">
           Latest News & Updates
         </h2>
 
+        {isError && (
+          <p className="text-center text-red-600">Unable to load homepage updates right now.</p>
+        )}
+
         <div className="w-[92%] sm:w-[90%] md:w-[80%] mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
-          <NewsCard
-            title="New Alumni Executive Council Announced"
-            date="Jan 2026"
-            excerpt="Meet the newly elected alumni leaders for the 2026–2028 term."
-            containerClassName="bg-white shadow-xl"
-          />
-          <NewsCard
-            title="Ife Architecture Alumni Donate Studio Equipment"
-            date="Dec 2025"
-            excerpt="Alumni contribute new drafting tools and computers to the department."
-            containerClassName="bg-white shadow-xl"
-          />
-          <NewsCard
-            title="Mentorship Program Launches"
-            date="Nov 2025"
-            excerpt="Alumni mentors now paired with final-year students."
-            containerClassName="bg-white shadow-xl"
-          />
+          {isLoading && Array.from({ length: 3 }).map((_, index) => (
+            <div key={index} className="h-[260px] rounded-xl bg-gray-100 animate-pulse" />
+          ))}
+
+          {!isLoading &&
+            dashboard?.latestNews.slice(0, 3).map((news) => (
+              <NewsCard
+                key={news.id}
+                title={news.title}
+                date={news.publishedAt ? formatDate(news.publishedAt) : undefined}
+                excerpt={news.excerpt || news.content}
+                containerClassName="bg-white shadow-xl"
+                tag={news.tags}
+                image={news.coverImageUrl || undefined}
+              />
+            ))}
         </div>
       </section>
 
-      {/* Final CTA */}
       <section className="w-full py-[3em] sm:py-[4em] bg-primary text-white text-center px-4">
         <h2 className="text-xl sm:text-2xl md:text-3xl font-semibold mb-3">
           Are you an Ife Architecture Alumnus?

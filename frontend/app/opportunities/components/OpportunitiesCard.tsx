@@ -25,6 +25,8 @@ export default function OpportunityCard({
   image,
   containerClassName = "",
 }: OpportunityCardProps) {
+  const isExternalLink = /^https?:\/\//i.test(link);
+
   return (
     <article
       className={`bg-white rounded-xl border border-gray-100 flex flex-col shadow-xl hover:shadow-md transition overflow-hidden ${containerClassName}`}
@@ -48,7 +50,12 @@ export default function OpportunityCard({
           {category}
         </span>
 
-        <Link href={link} target="_blank" rel="noopener noreferrer" className="font-medium text-base mb-1 hover:underline transition duration-200">
+        <Link
+          href={link}
+          target={isExternalLink ? "_blank" : undefined}
+          rel={isExternalLink ? "noopener noreferrer" : undefined}
+          className="font-medium text-base mb-1 hover:underline transition duration-200"
+        >
           {title}
         </Link>
 
@@ -74,8 +81,8 @@ export default function OpportunityCard({
 
         <Link
           href={link}
-          target="_blank"
-          rel="noopener noreferrer"
+          target={isExternalLink ? "_blank" : undefined}
+          rel={isExternalLink ? "noopener noreferrer" : undefined}
           className="mt-auto text-primary text-sm font-medium hover:underline"
         >
           View opportunity →

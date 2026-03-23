@@ -1,0 +1,160 @@
+export const tags = [
+  { name: "Health" },
+  { name: "Auth" },
+  { name: "Admin" },
+  { name: "Users" },
+  { name: "Alumni" },
+  { name: "Events" },
+  { name: "Opportunities" },
+  { name: "News" },
+  { name: "Gallery" },
+  { name: "Donations" },
+  { name: "Inquiries" },
+  { name: "Settings" },
+  { name: "Dashboard" },
+];
+
+export const components = {
+  securitySchemes: {
+    bearerAuth: {
+      type: "http",
+      scheme: "bearer",
+      bearerFormat: "JWT",
+    },
+  },
+  parameters: {
+    IdParam: {
+      name: "id",
+      in: "path",
+      required: true,
+      schema: { type: "string" },
+      description: "MongoDB ObjectId or slug where supported.",
+    },
+    PageParam: {
+      name: "page",
+      in: "query",
+      schema: { type: "integer", minimum: 1, default: 1 },
+    },
+    LimitParam: {
+      name: "limit",
+      in: "query",
+      schema: { type: "integer", minimum: 1, maximum: 100, default: 10 },
+    },
+    SortParam: {
+      name: "sort",
+      in: "query",
+      schema: { type: "string" },
+    },
+    OrderParam: {
+      name: "order",
+      in: "query",
+      schema: { type: "string", enum: ["asc", "desc"], default: "desc" },
+    },
+    SearchParam: {
+      name: "search",
+      in: "query",
+      schema: { type: "string" },
+    },
+  },
+  schemas: {
+    StandardSuccessResponse: {
+      type: "object",
+      properties: {
+        success: { type: "boolean", example: true },
+        message: { type: "string", example: "Request completed successfully." },
+        data: { nullable: true },
+        meta: { nullable: true },
+        error: { type: "null", example: null },
+      },
+    },
+    ErrorResponse: {
+      type: "object",
+      properties: {
+        success: { type: "boolean", example: false },
+        message: { type: "string", example: "Request failed." },
+        data: { type: "null", example: null },
+        error: {
+          type: "object",
+          properties: {
+            code: { type: "string", example: "VALIDATION_ERROR" },
+            details: { nullable: true },
+            requestId: { type: "string", example: "req_123456" },
+          },
+        },
+      },
+    },
+    PaginationMeta: {
+      type: "object",
+      properties: {
+        page: { type: "integer" },
+        limit: { type: "integer" },
+        total: { type: "integer" },
+        totalPages: { type: "integer" },
+      },
+    },
+    User: {
+      type: "object",
+      properties: {
+        id: { type: "string", example: "65f9c1d43f2e2c0012abc123" },
+        fullName: { type: "string", example: "Tunde Adebayo" },
+        email: { type: "string", format: "email", example: "tunde@email.com" },
+        googleId: { type: "string", nullable: true, example: "109876543210987654321" },
+        authProvider: { type: "string", enum: ["local", "google"], example: "google" },
+        isVerified: { type: "boolean", example: true },
+        isProfileComplete: { type: "boolean", example: false },
+        phone: { type: "string", nullable: true, example: "+2348012345678" },
+        graduationYear: { type: "string", nullable: true, example: "2015" },
+        degree: { type: "string", nullable: true, example: "B.Sc Architecture" },
+        specialization: { type: "string", nullable: true, example: "Urban Design" },
+        currentRole: { type: "string", nullable: true, example: "Senior Architect" },
+        company: { type: "string", nullable: true, example: "Studio Nexus" },
+        location: { type: "string", nullable: true, example: "Lagos, Nigeria" },
+        bio: { type: "string", nullable: true },
+        avatarUrl: { type: "string", nullable: true },
+        role: { type: "string", enum: ["user", "admin"], example: "user" },
+        status: { type: "string", enum: ["pending", "approved"], example: "pending" },
+        consent: { type: "boolean", example: true },
+      },
+    },
+    AuthResponse: {
+      type: "object",
+      properties: {
+        token: { type: "string", example: "jwt-token" },
+        user: { $ref: "#/components/schemas/User" },
+        isProfileComplete: { type: "boolean", example: false },
+        requiresProfileCompletion: { type: "boolean", example: true },
+      },
+    },
+    AdminUserResponse: {
+      type: "object",
+      properties: {
+        user: { $ref: "#/components/schemas/User" },
+      },
+    },
+    ProfileUpdateRequest: {
+      type: "object",
+      required: ["fullName", "phone", "graduationYear", "degree", "consent"],
+      properties: {
+        fullName: { type: "string" },
+        phone: { type: "string" },
+        graduationYear: { type: "string" },
+        degree: { type: "string" },
+        specialization: { type: "string" },
+        currentRole: { type: "string" },
+        company: { type: "string" },
+        location: { type: "string" },
+        bio: { type: "string" },
+        avatarUrl: { type: "string" },
+        consent: { type: "boolean" },
+      },
+    },
+    Event: { type: "object", properties: { id: { type: "string" }, title: { type: "string" }, slug: { type: "string" }, category: { type: "string" }, date: { type: "string", format: "date-time" }, location: { type: "string" }, description: { type: "string" }, registrationLink: { type: "string", nullable: true }, coverImageUrl: { type: "string", nullable: true }, isPublished: { type: "boolean" }, isFeatured: { type: "boolean" } } },
+    Opportunity: { type: "object", properties: { id: { type: "string" }, title: { type: "string" }, slug: { type: "string" }, organization: { type: "string" }, category: { type: "string" }, description: { type: "string" }, requirements: { type: "array", items: { type: "string" } }, location: { type: "string", nullable: true }, deadline: { type: "string", format: "date-time", nullable: true }, applicationLink: { type: "string", nullable: true }, status: { type: "string", enum: ["open", "closed"] }, coverImageUrl: { type: "string", nullable: true } } },
+    News: { type: "object", properties: { id: { type: "string" }, title: { type: "string" }, slug: { type: "string" }, excerpt: { type: "string" }, content: { type: "string" }, tags: { type: "array", items: { type: "string" } }, status: { type: "string", enum: ["draft", "published"] }, publishedAt: { type: "string", format: "date-time", nullable: true }, coverImageUrl: { type: "string", nullable: true } } },
+    GalleryItem: { type: "object", properties: { id: { type: "string" }, title: { type: "string" }, imageUrl: { type: "string" }, altText: { type: "string", nullable: true }, category: { type: "string" }, capturedAt: { type: "string", format: "date-time" } } },
+    Donation: { type: "object", properties: { id: { type: "string" }, donorName: { type: "string" }, email: { type: "string", nullable: true }, amount: { type: "number" }, reference: { type: "string" }, status: { type: "string", enum: ["pending", "completed", "failed"] }, paidAt: { type: "string", format: "date-time", nullable: true } } },
+    ContactMessage: { type: "object", properties: { id: { type: "string" }, name: { type: "string" }, email: { type: "string" }, message: { type: "string" }, status: { type: "string", enum: ["new", "read", "resolved"] } } },
+    Sponsorship: { type: "object", properties: { id: { type: "string" }, name: { type: "string" }, email: { type: "string" }, organization: { type: "string", nullable: true }, message: { type: "string" }, status: { type: "string", enum: ["new", "contacted", "closed"] } } },
+    Setting: { type: "object", properties: { siteName: { type: "string" }, siteDescription: { type: "string" }, contactEmail: { type: "string" }, contactPhone: { type: "string" }, contactAddress: { type: "string" }, socialLinks: { type: "object" }, donationLink: { type: "string" }, allowRegistrations: { type: "boolean" }, enableDonations: { type: "boolean" } } },
+  },
+};

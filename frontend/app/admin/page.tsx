@@ -1,117 +1,86 @@
 "use client";
 
+import { useEffect } from "react";
+import type { ComponentType } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import AdminSidebar from "./components/AdminSidebar";
 import AlumniTab from "./adminTabs/AlumniTab";
 import DashboardTab from "./adminTabs/DashboardTab";
+import DonationsTab from "./adminTabs/DonationsTab";
 import EventsTab from "./adminTabs/EventsTab";
 import GalleryTab from "./adminTabs/GalleryTab";
 import NewsTab from "./adminTabs/NewsTab";
 import OpportunitiesTab from "./adminTabs/OpportunitiesTab";
-import DonationsTab from "./adminTabs/DonationsTab";
 import SettingsTab from "./adminTabs/SettingsTab";
+import { TokenService } from "../apiServices/token-service";
+import { useOwnProfileQuery } from "../apiServices/queries";
+import { useStore } from "../lib/store";
 
-import { useSearchParams } from "next/navigation";
+const tabComponents: Record<string, ComponentType> = {
+  dashboard: DashboardTab,
+  alumni: AlumniTab,
+  events: EventsTab,
+  opportunities: OpportunitiesTab,
+  news: NewsTab,
+  gallery: GalleryTab,
+  donations: DonationsTab,
+  settings: SettingsTab,
+};
 
 export default function AdminPage() {
+  const router = useRouter();
   const searchParams = useSearchParams();
+  const token = TokenService.getCookie();
+  const user = useStore((state) => state.user);
+  const setUser = useStore((state) => state.setUser);
+  const logout = useStore((state) => state.logout);
   const tab = searchParams.get("tab") || "dashboard";
+  const profileQuery = useOwnProfileQuery(Boolean(token));
+  const ActiveTab = tabComponents[tab] || DashboardTab;
 
-  switch (tab) {
-    case "alumni":
-      return (
-      <div className="h-[89vh] md:mt-[-2em]">
-        <div className="max-md:-translate-x-full duration-100 transition ease-in block fixed top-[-1em] z-[2000]">
-          <AdminSidebar />  
-        </div>
-        <div className="grid md:pl-[16em] pr-5 pb-[2em] max-md:p-3.5 ">
-          <AlumniTab />
-        </div>
-        
-      </div>);
+  useEffect(() => {
+    if (!token) {
+      router.replace("/admin/login");
+    }
+  }, [router, token]);
 
-    case "events":
-      return (
-      <div className="h-[89vh] md:mt-[-2em]">
-        <div className="max-md:-translate-x-full duration-100 transition ease-in  block fixed top-[-1em] z-[2000]">
-          <AdminSidebar />  
-        </div>
-        <div className="grid md:pl-[16em] pr-5 pb-[2em] max-md:p-3.5 "><EventsTab /></div>
-      
-      </div>);
+  useEffect(() => {
+    const fetchedUser = profileQuery.data?.data.user;
 
-    case "opportunities":
-      return (
-      <div className="h-[89vh] md:mt-[-2em]">
-        <div className="max-md:-translate-x-full duration-100 transition ease-in  block fixed top-[-1em] z-[2000]">
-          <AdminSidebar />  
-        </div>
-        <div className="grid md:pl-[16em] pr-5 pb-[2em] max-md:p-3.5 "><OpportunitiesTab /></div>
-      </div>);
+    if (fetchedUser) {
+      setUser(fetchedUser);
 
-    case "news":
-      return (
-      <div className="h-[89vh] md:mt-[-2em] overflow-y-hidden">
-        <div className="max-md:-translate-x-full duration-100 transition ease-in  fixed top-[-1em] z-[2000]">
-          <AdminSidebar />  
-        </div>
-        <div className="grid md:pl-[16em] pr-5 pb-[2em] max-md:p-3.5 ">
-          <NewsTab />
-        </div>
-        
-      </div>);
+      if (fetchedUser.role !== "admin") {
+        logout();
+        router.replace("/admin/login");
+      }
+    }
+  }, [logout, profileQuery.data, router, setUser]);
 
-    case "gallery":
-      return (
-      <div className="h-[89vh] md:mt-[-2em] overflow-y-hidden">
-        <div className="max-md:-translate-x-full duration-100 transition ease-in  block fixed top-[-1em] z-[2000]">
-          <AdminSidebar />  
-        </div>
-        <div className="grid md:pl-[16em] pr-5 pb-[2em] max-md:p-3.5 ">
-          <GalleryTab />
-        </div>
-        
-      </div>);
+  useEffect(() => {
+    if (profileQuery.error) {
+      logout();
+      router.replace("/admin/login");
+    }
+  }, [logout, profileQuery.error, router]);
 
-    case "donations":
-      return (
-      <div className="h-[89vh] md:mt-[-2em]">
-        <div className="max-md:-translate-x-full duration-100 transition ease-in block fixed top-[-1em] z-[2000]">
-          <AdminSidebar />  
-        </div>
-        <div className="grid md:pl-[16em] pr-5 pb-[2em] max-md:p-3.5 ">
-          <DonationsTab />
-        </div>
-        
-      </div>);
-
-
-    case "settings":
-      return (
-      <div className="h-[89vh] md:mt-[-2em]">
-        <div className="max-md:-translate-x-full duration-100 transition ease-in block fixed top-[-1em] z-[2000]">
-          <AdminSidebar />  
-        </div>
-        <div className="grid md:pl-[16em] pr-5 pb-[2em] max-md:p-3.5  ">
-          <SettingsTab />
-        </div>
-      </div>);
-
-
-
-
-
-
-    default:
-      return (
-      <div className="h-[89vh] md:mt-[-2em]">
-        <div className="max-md:-translate-x-full duration-100 transition ease-in block fixed top-[-1em] z-[2000] ">
-          <AdminSidebar />  
-        </div>
-        
-        <div className="grid md:pl-[16em] pr-5 pb-[2em] max-md:p-4 ">
-          <DashboardTab />
-        </div>
-        
-      </div>);
+  if (!token || profileQuery.isLoading || (user && user.role !== "admin")) {
+    return (
+      <div className="grid min-h-[70vh] place-items-center bg-[#f8f8f8]">
+        <p className="text-sm text-gray-500">Loading admin workspace...</p>
+      </div>
+    );
   }
+
+  return (
+    <div className="h-[89vh] md:mt-[-2em]">
+      <div className="fixed top-[-1em] z-[2000] block transition duration-100 ease-in max-md:-translate-x-full">
+        <AdminSidebar />
+      </div>
+
+      <div className="grid pb-[2em] pr-5 max-md:p-4 md:pl-[16em]">
+        <ActiveTab />
+      </div>
+    </div>
+  );
 }

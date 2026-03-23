@@ -86,6 +86,7 @@ export default function Header() {
             <Link href="/">
               <Image
                 unoptimized
+                loading="eager"
                 src={"/alumni_logo.png"}
                 alt="ife alumni logo"
                 height={200}

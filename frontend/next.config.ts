@@ -1,10 +1,27 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
-  //output: 'export', // for static site generation
   images: {
-    domains: ["picsum.photos"],
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "picsum.photos",
+      },
+      {
+        protocol: "https",
+        hostname: "api.dicebear.com",
+      },
+      {
+        protocol: "http",
+        hostname: "localhost",
+        port: "5000",
+      },
+      {
+        protocol: "http",
+        hostname: "127.0.0.1",
+        port: "5000",
+      },
+    ],
   },
 };
 

@@ -1,10 +1,17 @@
 "use client";
 
-import { useState, FormEvent } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
 import InputField from "../components/InputField";
 import CustomSelect from "../components/CustomSelect";
+import { request } from "../apiServices/requests";
+import { TokenService } from "../apiServices/token-service";
+import {
+  getApiErrorMessage,
+  useAppMutations,
+} from "../apiServices/mutations";
+import { useStore } from "../lib/store";
 
 type RegisterFormState = {
   fullName: string;
@@ -20,29 +27,106 @@ type RegisterFormState = {
   consent: boolean;
 };
 
-export default function RegisterPage() {
-  const [step, setStep] = useState<1 | 2>(1);
+const initialFormState: RegisterFormState = {
+  fullName: "",
+  email: "",
+  phone: "",
+  graduationYear: "",
+  degree: "",
+  specialization: "",
+  currentRole: "",
+  company: "",
+  location: "",
+  bio: "",
+  consent: false,
+};
 
-  // Step 1 (Auth)
+export default function RegisterPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { setUser } = useStore();
+  const isCompleteProfileMode = searchParams.get("mode") === "complete-profile";
+  const [step, setStep] = useState<1 | 2>(isCompleteProfileMode ? 2 : 1);
   const [auth, setAuth] = useState({
     email: "",
     password: "",
   });
+  const [form, setForm] = useState<RegisterFormState>(initialFormState);
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const { registerMutation, updateOwnProfileMutation } = useAppMutations();
 
-  // Step 2 (Biodata)
-  const [form, setForm] = useState<RegisterFormState>({
-    fullName: "",
-    email: "",
-    phone: "",
-    graduationYear: "",
-    degree: "",
-    specialization: "",
-    currentRole: "",
-    company: "",
-    location: "",
-    bio: "",
-    consent: false,
-  });
+  useEffect(() => {
+    if (!isCompleteProfileMode) {
+      return;
+    }
+
+    const hash = window.location.hash.startsWith("#")
+      ? window.location.hash.slice(1)
+      : "";
+    const params = new URLSearchParams(hash);
+    const token = params.get("token");
+    const authError = params.get("error");
+    const hasIncompleteProfile =
+      params.get("requiresProfileCompletion") === "true" ||
+      params.get("isProfileComplete") === "false";
+
+    if (hash) {
+      window.history.replaceState(
+        null,
+        "",
+        `${window.location.pathname}${window.location.search}`,
+      );
+    }
+
+    if (authError) {
+      setErrorMessage("Google authentication failed. Please try again.");
+      return;
+    }
+
+    const loadProfile = async () => {
+      try {
+        if (token) {
+          TokenService.setCookie(token);
+        }
+
+        setStatusMessage("Loading your profile...");
+        const response = await request.getOwnProfile();
+        const user = response.data.user;
+        setUser(user);
+
+        if (!hasIncompleteProfile && user.isProfileComplete) {
+          router.replace(user.role === "admin" ? "/admin" : "/community");
+          return;
+        }
+
+        setForm((prev) => ({
+          ...prev,
+          fullName: user.fullName || prev.fullName,
+          email: user.email || prev.email,
+          phone: user.phone || prev.phone,
+          graduationYear: user.graduationYear || prev.graduationYear,
+          degree: user.degree || prev.degree,
+          specialization: user.specialization || prev.specialization,
+          currentRole: user.currentRole || prev.currentRole,
+          company: user.company || prev.company,
+          location: user.location || prev.location,
+          bio: user.bio || prev.bio,
+          consent: Boolean(user.consent),
+        }));
+        setStep(2);
+      } catch (error) {
+        setErrorMessage(
+          getApiErrorMessage(error, "Unable to load your profile."),
+        );
+      } finally {
+        setStatusMessage(null);
+      }
+    };
+
+    void loadProfile();
+  }, [isCompleteProfileMode, router, setUser]);
 
   const updateFormField = (
     field: keyof RegisterFormState,
@@ -54,70 +138,123 @@ export default function RegisterPage() {
   const handleAuthSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    // Frontend-only validation for now
-    if (!auth.email || !auth.password) return;
+    if (!auth.email || !auth.password) {
+      return;
+    }
 
-    // Autofill email into biodata form
     setForm((prev) => ({ ...prev, email: auth.email }));
-
-    // Move to step 2
     setStep(2);
   };
 
-  const handleFinalSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleFinalSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log({ auth, form });
-    alert("Registration submitted! (Frontend only for now)");
+    setErrorMessage(null);
+    setStatusMessage(null);
+
+    try {
+      if (isCompleteProfileMode) {
+        const response = await updateOwnProfileMutation.mutateAsync({
+          ...form,
+          consent: form.consent,
+        });
+        router.push(response.data.user.role === "admin" ? "/admin" : "/community");
+        return;
+      }
+
+      await registerMutation.mutateAsync({
+        ...form,
+        password: auth.password,
+      });
+
+      router.push("/login?registered=true");
+    } catch (error) {
+      setErrorMessage(
+        getApiErrorMessage(error, "Unable to complete registration."),
+      );
+    }
   };
 
-  function generateGraduationYears(startYear: number = 1960) {
+  const handleGoogleRegister = async () => {
+    setErrorMessage(null);
+    setStatusMessage(null);
+    setIsGoogleLoading(true);
+
+    try {
+      const response = await request.getGoogleAuthUrl(
+        `${window.location.origin}/register?mode=complete-profile`,
+      );
+      window.location.href = response.data.url;
+    } catch (error) {
+      setErrorMessage(
+        getApiErrorMessage(error, "Unable to start Google registration."),
+      );
+      setIsGoogleLoading(false);
+    }
+  };
+
+  const graduationYearOptions = useMemo(() => {
     const currentYear = new Date().getFullYear();
     const years: string[] = ["Select..."];
-    for (let y = currentYear; y >= startYear; y--) years.push(String(y));
+
+    for (let year = currentYear; year >= 1960; year -= 1) {
+      years.push(String(year));
+    }
+
     years.push("Others, please specify");
     return years;
-  }
+  }, []);
 
-  const graduationYearOptions = generateGraduationYears(1960);
+  const submitLabel = isCompleteProfileMode
+    ? updateOwnProfileMutation.isPending
+      ? "Saving Profile..."
+      : "Complete Profile"
+    : registerMutation.isPending
+      ? "Submitting..."
+      : "Complete Registration";
 
   return (
     <section className="w-full mb-16">
-      {/* Header */}
       <div className="w-[90%] mx-auto bg-[#F7E3C8] mt-6 rounded-2xl pt-8 pb-[15em] px-6 text-center">
-        {/*<div className="w-[95%] lg:w-[80%] mx-auto">
-          <Link
-            href="/"
-            className="flex items-center text-sm font-medium text-gray-700 hover:text-black"
-          >
-            <ArrowLeft size={18} className="mr-2" />
-            Back to home
-          </Link>
-        </div>*/}
-
         <h1 className="mt-[1em] text-lg md:text-4xl font-semibold text-gray-900 mb-3 font-montserrat">
-          Join the Alumni Network
+          {isCompleteProfileMode ? "Complete Your Profile" : "Join the Alumni Network"}
         </h1>
         <p className="max-w-2xl mx-auto text-gray-600 text-sm md:text-base leading-relaxed">
-          Help us build a strong alumni community. Create your account and share
-          your details.
+          {isCompleteProfileMode
+            ? "Complete your alumni biodata so you can access the full platform."
+            : "Help us build a strong alumni community. Create your account and share your details."}
         </p>
       </div>
 
-      {/* Card */}
-      <div className={`bg-white w-[95%]  mx-auto mt-[-13em] shadow-2xl rounded-2xl p-6  ${step === 1 ? "md:w-[60%] lg:w-[40%] md:p-8" : "lg:w-[70%] md:p-10" }`}>
-        {/* Step indicator */}
-        <div className="flex items-center justify-center gap-3 mb-8 text-sm text-gray-500">
-          <span className={step === 1 ? "text-primary font-medium" : ""}>
-            Step 1: Account
-          </span>
-          <span>→</span>
-          <span className={step === 2 ? "text-primary font-medium" : ""}>
-            Step 2: Biodata
-          </span>
-        </div>
+      <div
+        className={`bg-white w-[95%] mx-auto mt-[-13em] shadow-2xl rounded-2xl p-6 ${
+          step === 1 ? "md:w-[60%] lg:w-[40%] md:p-8" : "lg:w-[70%] md:p-10"
+        }`}
+      >
+        {(statusMessage || errorMessage) && (
+          <div
+            className={`mb-5 rounded-lg px-4 py-3 text-sm ${
+              errorMessage
+                ? "bg-red-50 text-red-700 border border-red-200"
+                : "bg-green-50 text-green-700 border border-green-200"
+            }`}
+          >
+            {errorMessage || statusMessage}
+          </div>
+        )}
 
-        {/* STEP 1: Auth */}
-        {step === 1 && (
+        {!isCompleteProfileMode && (
+          <div className="flex items-center justify-center gap-3 mb-8 text-sm text-gray-500">
+            <span className={step === 1 ? "text-primary font-medium" : ""}>
+              Step 1: Account
+            </span>
+            <span>→</span>
+            <span className={step === 2 ? "text-primary font-medium" : ""}>
+              Step 2: Biodata
+            </span>
+          </div>
+        )}
+
+        {step === 1 && !isCompleteProfileMode && (
           <form onSubmit={handleAuthSubmit} className="space-y-6">
             <InputField
               label="Email"
@@ -125,7 +262,7 @@ export default function RegisterPage() {
               placeholder="Email address"
               value={auth.email}
               required
-              onChange={(val) => setAuth((p) => ({ ...p, email: val }))}
+              onChange={(val) => setAuth((prev) => ({ ...prev, email: val }))}
             />
 
             <InputField
@@ -134,7 +271,9 @@ export default function RegisterPage() {
               placeholder="Create a password"
               value={auth.password}
               required
-              onChange={(val) => setAuth((p) => ({ ...p, password: val }))}
+              onChange={(val) =>
+                setAuth((prev) => ({ ...prev, password: val }))
+              }
             />
 
             <button
@@ -144,8 +283,19 @@ export default function RegisterPage() {
               Continue
             </button>
 
+            <button
+              type="button"
+              onClick={handleGoogleRegister}
+              disabled={isGoogleLoading}
+              className="w-full border border-gray-300 py-3 rounded-lg font-medium hover:bg-gray-50 transition disabled:opacity-60"
+            >
+              {isGoogleLoading
+                ? "Redirecting to Google..."
+                : "Continue with Google"}
+            </button>
+
             <p className="text-sm text-center text-gray-500">
-              Already registered?{" "}
+              Already registered?
               <Link href="/login" className="text-primary hover:underline">
                 Sign in instead
               </Link>
@@ -153,7 +303,6 @@ export default function RegisterPage() {
           </form>
         )}
 
-        {/* STEP 2: Biodata */}
         {step === 2 && (
           <form onSubmit={handleFinalSubmit} className="space-y-9">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -197,6 +346,7 @@ export default function RegisterPage() {
                 label="Graduation Year"
                 required
                 options={graduationYearOptions}
+                placeholder={form.graduationYear || "Select..."}
                 onChange={(val) => updateFormField("graduationYear", val)}
               />
 
@@ -211,6 +361,7 @@ export default function RegisterPage() {
                   "PhD",
                   "Others, please specify",
                 ]}
+                placeholder={form.degree || "Select..."}
                 onChange={(val) => updateFormField("degree", val)}
               />
 
@@ -266,19 +417,24 @@ export default function RegisterPage() {
             </label>
 
             <div className="flex gap-3 max-md:flex-col-reverse">
-              <button
-                type="button"
-                onClick={() => setStep(1)}
-                className="w-full border border-gray-300 py-3 rounded-lg font-medium hover:bg-gray-50 transition"
-              >
-                Back
-              </button>
+              {!isCompleteProfileMode && (
+                <button
+                  type="button"
+                  onClick={() => setStep(1)}
+                  className="w-full border border-gray-300 py-3 rounded-lg font-medium hover:bg-gray-50 transition"
+                >
+                  Back
+                </button>
+              )}
 
               <button
                 type="submit"
-                className="w-full bg-primary text-white py-3 rounded-lg font-medium hover:opacity-90 transition"
+                disabled={
+                  registerMutation.isPending || updateOwnProfileMutation.isPending
+                }
+                className="w-full bg-primary text-white py-3 rounded-lg font-medium hover:opacity-90 transition disabled:opacity-60"
               >
-                Complete Registration
+                {submitLabel}
               </button>
             </div>
           </form>

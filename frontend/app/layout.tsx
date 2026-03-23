@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
+import Providers from "./providers";
 import SuspenseWrapper from "./components/SuspenseBoundaryWrapper";
 
 /*const geistSans = Geist({
@@ -28,23 +29,26 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.googleapis.com"/>
         <link rel="preconnect" href="https://fonts.gstatic.com" />
         <link
           href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"
           rel="stylesheet"
         ></link>
       </head>
-      <SuspenseWrapper>
+      
         <body
           className="pt-[6.8em] min-h-screen grid"
-          //className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         >
-          <Header />
-          {children}
-          <Footer />
+          <SuspenseWrapper>
+          <Providers>
+            <Header />
+            {children}
+            <Footer />
+          </Providers>
+          </SuspenseWrapper>
         </body>
-      </SuspenseWrapper>
+      
     </html>
   );
 }

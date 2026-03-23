@@ -1,16 +1,38 @@
-"use client"
+"use client";
+
 import Link from "next/link";
 import { Mail, Phone, MapPin } from "lucide-react";
 import { usePathname } from "next/navigation";
 
 export default function Footer() {
   const pathname = usePathname();
-  const isAdminRoute = pathname.startsWith("/admin");
 
-  
+  /**
+   * 🚫 Routes where footer should be hidden
+   */
+  const exactHiddenRoutes = [
+    "/login",
+    "/register",
+  ];
+
+  const prefixHiddenRoutes = [
+    "/admin",
+    "/verify-email",
+    "/oauth"
+  ];
+
+  const shouldHideFooter =
+    exactHiddenRoutes.includes(pathname) ||
+    prefixHiddenRoutes.some((route) =>
+      pathname.startsWith(route)
+    );
+
+  if (shouldHideFooter) return null;
+
   return (
-    !isAdminRoute ? <footer className="bg-[#0f0f0f] text-gray-300 mb-0 mt-auto">
+    <footer className="bg-[#0f0f0f] text-gray-300 mt-auto">
       <div className="w-[92%] sm:w-[90%] md:w-[80%] mx-auto py-12 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
+        
         {/* Brand */}
         <div>
           <h3 className="text-white font-semibold text-lg mb-3">
@@ -103,6 +125,6 @@ export default function Footer() {
           </div>
         </div>
       </div>
-    </footer> : null
+    </footer>
   );
 }

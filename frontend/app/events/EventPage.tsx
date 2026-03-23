@@ -2,103 +2,56 @@
 
 import { useMemo, useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
-import { Calendar, MapPin, Users } from "lucide-react";
+import { Calendar, MapPin } from "lucide-react";
+import { useEventsQuery } from "../apiServices/queries";
+import { formatDate } from "../lib/formatters";
 
-type EventCategory = "All" | "Networking" | "Workshop" | "Talk" | "Reunion";
-
-type EventItem = {
-  id: number;
-  title: string;
-  date: string;
-  location: string;
-  category: Exclude<EventCategory, "All">;
-  image: string;
-  description: string;
-  isPast?: boolean;
-};
-
-const EVENTS: EventItem[] = [
-  {
-    id: 1,
-    title: "Alumni Networking Night 2026",
-    date: "Feb 20, 2026",
-    location: "Lagos, Nigeria",
-    category: "Networking",
-    image: "https://picsum.photos/seed/eventA/800/600",
-    description:
-      "An evening of networking with fellow alumni, industry leaders, and current students.",
-  },
-  {
-    id: 2,
-    title: "Digital Fabrication Workshop",
-    date: "Mar 12, 2026",
-    location: "OAU Campus",
-    category: "Workshop",
-    image: "https://picsum.photos/seed/eventB/800/600",
-    description:
-      "Hands-on workshop exploring modern digital fabrication tools and workflows.",
-  },
-  {
-    id: 3,
-    title: "Architecture Career Talk",
-    date: "Apr 5, 2026",
-    location: "Virtual (Zoom)",
-    category: "Talk",
-    image: "https://picsum.photos/seed/eventC/800/600",
-    description:
-      "Industry professionals share career paths and practical advice for young architects.",
-  },
-  {
-    id: 4,
-    title: "Class of 2015 Reunion",
-    date: "Dec 15, 2025",
-    location: "Ile-Ife, Nigeria",
-    category: "Reunion",
-    image: "https://picsum.photos/seed/eventD/800/600",
-    description:
-      "Reconnecting with classmates and celebrating milestones together.",
-    isPast: true,
-  },
-];
+type EventCategory = "All" | "Networking" | "Workshop" | "Conference" | "Meetup" | "Seminar" | "Talk" | "Reunion" | "Other";
 
 const CATEGORIES: EventCategory[] = [
   "All",
   "Networking",
   "Workshop",
+  "Conference",
+  "Meetup",
+  "Seminar",
   "Talk",
   "Reunion",
+  "Other",
 ];
 
 export default function EventsPage() {
-  const [activeCategory, setActiveCategory] =
-    useState<EventCategory>("All");
+  const [activeCategory, setActiveCategory] = useState<EventCategory>("All");
+  const upcomingQuery = useEventsQuery({
+    timeframe: "upcoming",
+    category: activeCategory,
+    limit: 50,
+    sort: "date",
+    order: "asc",
+  });
+  const pastQuery = useEventsQuery({
+    timeframe: "past",
+    category: activeCategory,
+    limit: 50,
+    sort: "date",
+    order: "desc",
+  });
 
   const upcomingEvents = useMemo(
-    () => EVENTS.filter((e) => !e.isPast),
-    []
+    () => upcomingQuery.data?.data ?? [],
+    [upcomingQuery.data],
   );
-
-  const pastEvents = useMemo(() => EVENTS.filter((e) => e.isPast), []);
-
-  const filteredUpcoming = useMemo(() => {
-    if (activeCategory === "All") return upcomingEvents;
-    return upcomingEvents.filter((e) => e.category === activeCategory);
-  }, [activeCategory, upcomingEvents]);
+  const pastEvents = useMemo(() => pastQuery.data?.data ?? [], [pastQuery.data]);
 
   return (
     <main className="bg-[#f8f8f8] min-h-screen pt-[6em] pb-[5em]">
-      {/* Header */}
       <section className="w-[92%] sm:w-[90%] md:w-[80%] mx-auto mb-8">
-        <h1 className="text-2xl sm:text-3xl font-semibold mb-2">
-          Events
-        </h1>
+        <h1 className="text-2xl sm:text-3xl font-semibold mb-2">Events</h1>
         <p className="text-gray-600 text-sm sm:text-base">
           Stay connected through alumni events, workshops, talks, and reunions.
         </p>
       </section>
 
-      {/* Filters */}
       <section className="w-[92%] sm:w-[90%] md:w-[80%] mx-auto mb-8 flex flex-wrap gap-2">
         {CATEGORIES.map((cat) => (
           <button
@@ -115,19 +68,26 @@ export default function EventsPage() {
         ))}
       </section>
 
-      {/* Upcoming */}
       <section className="w-[92%] sm:w-[90%] md:w-[80%] mx-auto mb-14">
-        <h2 className="text-xl sm:text-2xl font-semibold mb-5">
-          Upcoming Events
-        </h2>
+        <h2 className="text-xl sm:text-2xl font-semibold mb-5">Upcoming Events</h2>
 
-        {filteredUpcoming.length === 0 ? (
+        {upcomingQuery.isLoading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {Array.from({ length: 6 }).map((_, index) => (
+              <div key={index} className="h-[340px] rounded-xl bg-gray-100 animate-pulse" />
+            ))}
+          </div>
+        ) : upcomingQuery.isError ? (
+          <div className="bg-white rounded-xl p-6 text-center text-red-600 border border-gray-100">
+            Unable to load upcoming events right now.
+          </div>
+        ) : upcomingEvents.length === 0 ? (
           <div className="bg-white rounded-xl p-6 text-center text-gray-500 border border-gray-100">
             No upcoming events found for this category.
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredUpcoming.map((event) => (
+            {upcomingEvents.map((event) => (
               <div
                 key={event.id}
                 className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition"
@@ -135,7 +95,7 @@ export default function EventsPage() {
                 <div className="relative h-44 w-full">
                   <Image
                     unoptimized
-                    src={event.image}
+                    src={event.coverImageUrl || "https://picsum.photos/seed/eventA/800/600"}
                     alt={event.title}
                     fill
                     className="object-cover"
@@ -145,9 +105,9 @@ export default function EventsPage() {
                 <div className="p-4">
                   <h3 className="font-semibold mb-1">{event.title}</h3>
 
-                  <div className="flex items-center gap-3 text-xs text-gray-500 mb-2">
+                  <div className="flex items-center gap-3 text-xs text-gray-500 mb-2 flex-wrap">
                     <span className="flex items-center gap-1">
-                      <Calendar size={14} /> {event.date}
+                      <Calendar size={14} /> {formatDate(event.date)}
                     </span>
                     <span className="flex items-center gap-1">
                       <MapPin size={14} /> {event.location}
@@ -158,14 +118,21 @@ export default function EventsPage() {
                     {event.description}
                   </p>
 
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between gap-2">
                     <span className="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-600">
                       {event.category}
                     </span>
 
-                    <button className="text-primary text-sm font-medium hover:underline">
-                      RSVP →
-                    </button>
+                    {event.registrationLink ? (
+                      <a
+                        href={event.registrationLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary text-sm font-medium hover:underline"
+                      >
+                        RSVP →
+                      </a>
+                    ) : null}
                   </div>
                 </div>
               </div>
@@ -174,13 +141,20 @@ export default function EventsPage() {
         )}
       </section>
 
-      {/* Past */}
       <section className="w-[92%] sm:w-[90%] md:w-[80%] mx-auto">
-        <h2 className="text-xl sm:text-2xl font-semibold mb-5">
-          Past Events
-        </h2>
+        <h2 className="text-xl sm:text-2xl font-semibold mb-5">Past Events</h2>
 
-        {pastEvents.length === 0 ? (
+        {pastQuery.isLoading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {Array.from({ length: 3 }).map((_, index) => (
+              <div key={index} className="h-[280px] rounded-xl bg-gray-100 animate-pulse" />
+            ))}
+          </div>
+        ) : pastQuery.isError ? (
+          <div className="bg-white rounded-xl p-6 text-center text-red-600 border border-gray-100">
+            Unable to load past events right now.
+          </div>
+        ) : pastEvents.length === 0 ? (
           <div className="bg-white rounded-xl p-6 text-center text-gray-500 border border-gray-100">
             No past events yet.
           </div>
@@ -194,7 +168,7 @@ export default function EventsPage() {
                 <div className="relative h-40 w-full">
                   <Image
                     unoptimized
-                    src={event.image}
+                    src={event.coverImageUrl || "https://picsum.photos/seed/eventD/800/600"}
                     alt={event.title}
                     fill
                     className="object-cover"
@@ -203,10 +177,8 @@ export default function EventsPage() {
 
                 <div className="p-4">
                   <h3 className="font-medium mb-1">{event.title}</h3>
-                  <p className="text-xs text-gray-500 mb-1">{event.date}</p>
-                  <p className="text-sm text-gray-600 line-clamp-2">
-                    {event.description}
-                  </p>
+                  <p className="text-xs text-gray-500 mb-1">{formatDate(event.date)}</p>
+                  <p className="text-sm text-gray-600 line-clamp-2">{event.description}</p>
                 </div>
               </div>
             ))}

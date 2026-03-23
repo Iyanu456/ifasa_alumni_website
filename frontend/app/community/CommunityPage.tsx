@@ -3,97 +3,34 @@
 import { useMemo, useState } from "react";
 import AlumniCard from "./components/AlumniCard";
 import CustomSelect from "../components/CustomSelect";
-
-type Alumni = {
-  id: number;
-  name: string;
-  role: string;
-  location: string;
-  graduationYear: string;
-  specialization: string;
-  image?: string;
-};
-
-const ALUMNI_DATA: Alumni[] = [
-  {
-    id: 1,
-    name: "Tunde Adebayo",
-    role: "Senior Architect",
-    location: "Lagos, Nigeria",
-    graduationYear: "2015",
-    specialization: "Urban Design",
-    image: "https://picsum.photos/seed/tunde/300/300",
-  },
-  {
-    id: 2,
-    name: "Funke Oladipo",
-    role: "Urban Designer",
-    location: "London, UK",
-    graduationYear: "2017",
-    specialization: "Sustainable Architecture",
-    image: "https://picsum.photos/seed/funke/300/300",
-  },
-  {
-    id: 3,
-    name: "Ibrahim Musa",
-    role: "Project Manager",
-    location: "Abuja, Nigeria",
-    graduationYear: "2012",
-    specialization: "Construction Management",
-  },
-  {
-    id: 4,
-    name: "Aisha Bello",
-    role: "Interior Designer",
-    location: "Toronto, Canada",
-    graduationYear: "2020",
-    specialization: "Interior Architecture",
-    image: "https://picsum.photos/seed/aisha/300/300",
-  },
-  {
-    id: 5,
-    name: "Kunle Ade",
-    role: "Design Lead",
-    location: "Berlin, Germany",
-    graduationYear: "2014",
-    specialization: "Digital Fabrication",
-    image: "https://picsum.photos/seed/kunle/300/300",
-  },
-];
+import { usePublicAlumniQuery } from "../apiServices/queries";
 
 function generateGraduationYears(startYear = 1960) {
   const currentYear = new Date().getFullYear();
   const years: string[] = ["All"];
-  for (let y = currentYear; y >= startYear; y--) years.push(String(y));
+  for (let y = currentYear; y >= startYear; y -= 1) {
+    years.push(String(y));
+  }
   return years;
 }
 
 export default function CommunityPage() {
   const [query, setQuery] = useState("");
   const [yearFilter, setYearFilter] = useState("All");
+  const yearOptions = useMemo(() => generateGraduationYears(1960), []);
+  const alumniQuery = usePublicAlumniQuery({
+    search: query || undefined,
+    graduationYear: yearFilter,
+    limit: 60,
+  });
 
-  const yearOptions = generateGraduationYears(1960);
-
-  const filteredAlumni = useMemo(() => {
-    return ALUMNI_DATA.filter((a) => {
-      const matchesQuery =
-        a.name.toLowerCase().includes(query.toLowerCase()) ||
-        a.role.toLowerCase().includes(query.toLowerCase()) ||
-        a.location.toLowerCase().includes(query.toLowerCase());
-
-      const matchesYear =
-        yearFilter === "All" ? true : a.graduationYear === yearFilter;
-
-      return matchesQuery && matchesYear;
-    });
-  }, [query, yearFilter]);
-
-  const hasNoData = ALUMNI_DATA.length === 0;
-  const hasNoResults = ALUMNI_DATA.length > 0 && filteredAlumni.length === 0;
+  const alumni = alumniQuery.data?.data ?? [];
+  const totalCount = alumniQuery.data?.meta?.total ?? alumni.length;
+  const hasNoData = !alumniQuery.isLoading && !alumni.length && !query && yearFilter === "All";
+  const hasNoResults = !alumniQuery.isLoading && !alumni.length && (!!query || yearFilter !== "All");
 
   return (
     <main className="bg-[#f8f8f8] min-h-screen pt-[3em] md:pt-[6em] pb-[4em]">
-      {/* Header */}
       <section className="w-[92%] sm:w-[90%] md:w-[80%] mx-auto mb-6">
         <h1 className="text-2xl sm:text-3xl font-semibold mb-2">
           Alumni Community
@@ -104,7 +41,6 @@ export default function CommunityPage() {
         </p>
       </section>
 
-      {/* Filters */}
       <section className="w-[92%] sm:w-[90%] md:w-[80%] mx-auto mb-6 grid grid-cols-1 sm:grid-cols-3 gap-3">
         <input
           type="text"
@@ -115,18 +51,31 @@ export default function CommunityPage() {
         />
 
         <CustomSelect
-        className="bg-white"
-        placeholder="Graduation Year"
+          className="bg-white"
+          placeholder={yearFilter === "All" ? "Graduation Year" : yearFilter}
           options={yearOptions}
           onChange={(val) => setYearFilter(val)}
         />
 
         <div className="text-sm text-gray-500 self-center">
-          Showing {filteredAlumni.length} alumni
+          {alumniQuery.isLoading ? "Loading alumni..." : `Showing ${alumni.length} of ${totalCount} alumni`}
         </div>
       </section>
 
-      {/* States */}
+      {alumniQuery.isLoading && (
+        <section className="w-[92%] sm:w-[90%] md:w-[80%] mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {Array.from({ length: 8 }).map((_, index) => (
+            <div key={index} className="h-[360px] rounded-xl bg-gray-100 animate-pulse" />
+          ))}
+        </section>
+      )}
+
+      {alumniQuery.isError && (
+        <section className="w-[92%] sm:w-[90%] md:w-[80%] mx-auto mt-10 text-center bg-white rounded-2xl p-10 border border-gray-100 text-red-600">
+          Unable to load the alumni directory right now.
+        </section>
+      )}
+
       {hasNoData && (
         <section className="w-[92%] sm:w-[90%] md:w-[80%] mx-auto mt-10 text-center bg-white rounded-2xl p-10 border border-gray-100">
           <h3 className="text-lg font-medium mb-2">No alumni yet</h3>
@@ -156,10 +105,9 @@ export default function CommunityPage() {
         </section>
       )}
 
-      {/* Alumni Grid */}
-      {!hasNoData && !hasNoResults && (
+      {!alumniQuery.isLoading && !hasNoData && !hasNoResults && !alumniQuery.isError && (
         <section className="w-[92%] sm:w-[90%] md:w-[80%] mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {filteredAlumni.map((alumnus) => (
+          {alumni.map((alumnus) => (
             <AlumniCard key={alumnus.id} alumnus={alumnus} />
           ))}
         </section>
