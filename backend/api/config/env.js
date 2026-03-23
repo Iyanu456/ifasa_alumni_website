@@ -55,15 +55,14 @@ const env = Object.freeze({
   isProduction,
   port,
   mongoUri:
-    process.env.MONGO_URI || "mongodb://127.0.0.1:27017/ifasa_alumni",
+    process.env.MONGO_URI,
   jwtSecret:
-    process.env.JWT_SECRET || "development-jwt-secret-change-me-in-production",
+    process.env.JWT_SECRET,
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || "7d",
   clientUrl: process.env.CLIENT_URL,
   serverUrl: process.env.SERVER_URL || `http://localhost:${port}`,
   corsOrigins: toArray(
-    process.env.CORS_ORIGIN || process.env.CLIENT_URL || "http://localhost:3000",
-    ["http://localhost:3000"],
+    process.env.CLIENT_URL,
   ),
   logLevel: process.env.LOG_LEVEL || (isProduction ? "info" : "debug"),
   bcryptSaltRounds: toNumber(process.env.BCRYPT_SALT_ROUNDS, 12),
