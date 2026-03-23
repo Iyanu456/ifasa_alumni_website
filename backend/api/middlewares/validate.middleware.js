@@ -35,6 +35,8 @@ export const validateRequest = async (req, _res, next) => {
     return next();
   }
 
+  console.log("VALIDATION ERRORS:", result.array()); // 👈 ADD THIS
+
   await cleanupUploadedFiles(req);
 
   return next(

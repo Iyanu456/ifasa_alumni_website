@@ -7,6 +7,7 @@ import { getApiErrorMessage, useAppMutations } from "../../apiServices/mutations
 import { useAdminUsersQuery } from "../../apiServices/queries";
 import { buildAvatarFallback } from "../../lib/formatters";
 import type { User } from "../../types/types";
+import { truncateText } from "../../lib/formatters";
 
 type EditFormState = {
   fullName: string;
@@ -61,7 +62,7 @@ export default function AlumniTab() {
 
   const handleApprove = async (user: User) => {
     setActiveMenu(null);
-    await approveAlumnusMutation.mutateAsync(user.id);
+    await approveAlumnusMutation.mutateAsync(user._id);
   };
 
   const handleDelete = async (user: User) => {
@@ -74,18 +75,18 @@ export default function AlumniTab() {
       }
     }
 
-    await deleteAlumnusMutation.mutateAsync(user.id);
+    await deleteAlumnusMutation.mutateAsync(user._id);
   };
 
   const handleRoleToggle = async (user: User) => {
     setActiveMenu(null);
 
     if (user.role === "admin") {
-      await removeAdminMutation.mutateAsync(user.id);
+      await removeAdminMutation.mutateAsync(user._id);
       return;
     }
 
-    await makeAdminMutation.mutateAsync(user.id);
+    await makeAdminMutation.mutateAsync(user._id);
   };
 
   const handleEditSubmit = async () => {
@@ -94,7 +95,7 @@ export default function AlumniTab() {
     }
 
     await updateAlumnusMutation.mutateAsync({
-      id: editingUser.id,
+      id: editingUser._id,
       data: {
         fullName: editForm.fullName,
         currentRole: editForm.currentRole,
@@ -114,6 +115,8 @@ export default function AlumniTab() {
     deleteAlumnusMutation.error ||
     makeAdminMutation.error ||
     removeAdminMutation.error;
+
+    
 
   return (
     <section className="space-y-6">
@@ -141,7 +144,7 @@ export default function AlumniTab() {
         </p>
       ) : null}
 
-      <div className="overflow-hidden rounded-xl border border-gray-100 bg-white">
+      <div className="overflow-hidden  rounded-xl border border-gray-100 bg-white">
         {usersQuery.isLoading ? (
           <div className="p-8 text-center text-sm text-gray-500">Loading users...</div>
         ) : usersQuery.error ? (
@@ -154,7 +157,7 @@ export default function AlumniTab() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full text-sm mb-[4em]">
               <thead className="bg-gray-50 text-gray-500">
                 <tr>
                   <th className="p-4 text-left font-medium">User</th>
@@ -163,7 +166,7 @@ export default function AlumniTab() {
                     Location
                   </th>
                   <th className="hidden p-4 text-left font-medium lg:table-cell">Role</th>
-                  <th className="p-4 text-left font-medium">Status</th>
+                  {/*<th className="hidden p-4 text-left font-medium">Status</th>*/}
                   <th className="p-4 text-left font-medium">Access</th>
                   <th className="p-4 text-right font-medium" />
                 </tr>
@@ -171,11 +174,11 @@ export default function AlumniTab() {
 
               <tbody>
                 {users.map((user) => {
-                  const avatar = user.avatarUrl || buildAvatarFallback(user.fullName);
+                  const avatar = buildAvatarFallback(user.fullName);
 
                   return (
                     <tr
-                      key={user.id}
+                      key={user._id}
                       className="border-t border-gray-100 transition hover:bg-gray-50"
                     >
                       <td className="p-4">
@@ -190,8 +193,10 @@ export default function AlumniTab() {
                           />
 
                           <div>
-                            <p className="font-medium">{user.fullName}</p>
-                            <p className="text-xs text-gray-500">{user.email}</p>
+                            <p className="font-medium max-md:hidden block">{user.fullName}</p>
+                            <p className="font-medium max-md:block hidden">{truncateText(user.fullName??"", 14)}</p>
+                            <p className="text-xs text-gray-500 block max-md:hidden">{user.email}</p>
+                            <p className="text-xs text-gray-500 ">{truncateText(user.email??"", 15) }</p>
                             <p className="text-xs text-gray-400 md:hidden">
                               {user.location || "No location set"}
                             </p>
@@ -208,9 +213,9 @@ export default function AlumniTab() {
                       <td className="hidden p-4 lg:table-cell">
                         {user.currentRole || user.associationRoleTitle || "—"}
                       </td>
-                      <td className="p-4">
+                      {/*<td className="p-4">
                         <span
-                          className={`rounded-full px-2 py-1 text-xs ${
+                          className={`hidden rounded-full px-2 py-1 text-xs ${
                             user.status === "approved"
                               ? "bg-green-100 text-green-600"
                               : "bg-yellow-100 text-yellow-700"
@@ -218,7 +223,7 @@ export default function AlumniTab() {
                         >
                           {user.status === "approved" ? "Approved" : "Pending"}
                         </span>
-                      </td>
+                      </td>*/}
                       <td className="p-4">
                         <span
                           className={`rounded-full px-2 py-1 text-xs ${
@@ -235,7 +240,7 @@ export default function AlumniTab() {
                           onClick={(event) => {
                             event.stopPropagation();
                             setActiveMenu((current) =>
-                              current === user.id ? null : user.id,
+                              current === user._id ? null : user._id,
                             );
                           }}
                           className="rounded p-2 hover:bg-gray-100"
@@ -243,8 +248,8 @@ export default function AlumniTab() {
                           <MoreVertical size={18} />
                         </button>
 
-                        {activeMenu === user.id ? (
-                          <div className="absolute right-4 z-20 mt-2 w-44 rounded-lg border border-gray-100 bg-white text-sm shadow-lg">
+                        {activeMenu === user._id ? (
+                          <div className="absolute right-4 z-4000 mt-2 w-44 rounded-lg border border-gray-100 bg-white text-sm shadow-lg">
                             {user.status === "pending" && user.role !== "admin" ? (
                               <button
                                 onClick={() => void handleApprove(user)}

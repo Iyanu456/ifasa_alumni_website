@@ -28,7 +28,7 @@ export type AuthProvider = "local" | "google";
 export type ApprovalStatus = "pending" | "approved";
 
 export type User = {
-  id: string;
+  _id: string;
   fullName: string;
   email: string;
   googleId?: string | null;
@@ -69,18 +69,18 @@ export type LoginBody = {
 };
 
 export type RegisterBody = {
-  fullName: string;
+  //fullName: string;
   email: string;
   password: string;
-  phone: string;
-  graduationYear: string;
-  degree: string;
-  specialization?: string;
-  currentRole?: string;
-  company?: string;
-  location?: string;
-  bio?: string;
-  consent: boolean;
+  //phone: string;
+  //graduationYear: string;
+  //degree: string;
+  //specialization?: string;
+  //currentRole?: string;
+  //company?: string;
+  //location?: string;
+  //bio?: string;
+  //consent: boolean;
 };
 
 export type ProfileUpdateBody = Omit<RegisterBody, "email" | "password">;
@@ -102,7 +102,7 @@ export type Settings = {
 };
 
 export type Event = {
-  id: string;
+  _id: string;
   title: string;
   slug: string;
   category: string;
@@ -118,7 +118,7 @@ export type Event = {
 };
 
 export type Opportunity = {
-  id: string;
+  _id: string;
   title: string;
   slug: string;
   organization: string;
@@ -136,7 +136,7 @@ export type Opportunity = {
 };
 
 export type NewsItem = {
-  id: string;
+  _id: string;
   title: string;
   slug: string;
   excerpt?: string | null;
@@ -152,7 +152,7 @@ export type NewsItem = {
 };
 
 export type GalleryItem = {
-  id: string;
+  _id: string;
   title: string;
   imageUrl: string;
   altText?: string | null;
@@ -222,7 +222,7 @@ export type AdminDashboardData = {
     donationsReceived: number;
   };
   recentActivities: ActivityLog[];
-  latestOpportunities: Pick<Opportunity, "id" | "title" | "organization" | "deadline">[];
+  latestOpportunities: Pick<Opportunity, "_id" | "title" | "organization" | "deadline">[];
 };
 
 export type ActivityLog = {

@@ -92,7 +92,7 @@ export default function LoginPage() {
 
           <p className="text-sm text-center text-gray-500">
             Not an admin?
-            <Link href="/" className="text-primary hover:underline">
+            <Link href="/" className="text-primary hover:underline ml-1">
               Go back to the main page
             </Link>
           </p>

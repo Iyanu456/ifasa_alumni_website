@@ -108,11 +108,11 @@ export default function LoginPage() {
       const response = await loginMutation.mutateAsync(form);
 
       if (response.data.requiresProfileCompletion) {
-        router.push("/register?mode=complete-profile");
+        router.push("/complete-profile");
         return;
       }
 
-      router.push(response.data.user.role === "admin" ? "/admin" : "/community");
+      router.push("/dashboard");
     } catch (error) {
       setErrorMessage(getApiErrorMessage(error, "Unable to sign in."));
     }
@@ -198,7 +198,7 @@ export default function LoginPage() {
 
           <p className="text-sm text-center text-gray-500">
             New here?
-            <Link href="/register" className="text-primary hover:underline">
+            <Link href="/register" className="text-primary hover:underline ml-1">
               Join the alumni network
             </Link>
           </p>

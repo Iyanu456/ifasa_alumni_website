@@ -57,7 +57,7 @@ export default function CustomSelect({
   return (
     <div ref={containerRef} className="relative w-full">
       {label && (
-        <label className="block mb-2 text-sm font-medium">
+        <label className="block mb-2 text-sm font-semibold">
           {label}
           {required && <span className="text-primary ml-1">*</span>}
         </label>

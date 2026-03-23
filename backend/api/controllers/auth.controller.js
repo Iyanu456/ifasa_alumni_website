@@ -25,13 +25,11 @@ export const register = asyncHandler(async (req, res) => {
 });
 
 export const verifyEmail = asyncHandler(async (req, res) => {
-  const user = await verifyUserEmail(req.params.token);
+  const data = await verifyUserEmail(req.params.token);
 
   return sendSuccess(res, {
     message: "Email verified successfully.",
-    data: {
-      user,
-    },
+    data
   });
 });
 

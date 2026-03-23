@@ -70,7 +70,7 @@ export default function GalleryTab() {
     try {
       if (editingItem) {
         await updateGalleryMutation.mutateAsync({
-          id: editingItem.id,
+          id: editingItem._id,
           data: form,
           image: selectedImage,
         });
@@ -152,7 +152,7 @@ export default function GalleryTab() {
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
           {gallery.map((item) => (
             <div
-              key={item.id}
+              key={item._id}
               className="group relative overflow-hidden rounded-xl border border-gray-100 bg-white"
             >
               <div className="relative h-48">
@@ -177,14 +177,14 @@ export default function GalleryTab() {
                 <button
                   onClick={(event) => {
                     event.stopPropagation();
-                    setActiveMenu((current) => (current === item.id ? null : item.id));
+                    setActiveMenu((current) => (current === item._id ? null : item._id));
                   }}
                   className="rounded-lg bg-white p-2 shadow hover:bg-gray-100"
                 >
                   <MoreVertical size={16} />
                 </button>
 
-                {activeMenu === item.id ? (
+                {activeMenu === item._id ? (
                   <div className="absolute right-0 z-20 mt-2 w-32 rounded-lg border border-gray-100 bg-white text-sm shadow-lg">
                     <button
                       onClick={() => openEdit(item)}
@@ -194,7 +194,7 @@ export default function GalleryTab() {
                     </button>
 
                     <button
-                      onClick={() => void handleDelete(item.id)}
+                      onClick={() => void handleDelete(item._id)}
                       className="block w-full px-4 py-2 text-left text-red-500 hover:bg-gray-50"
                     >
                       Delete

@@ -8,7 +8,9 @@ const userSchema = new mongoose.Schema(
   {
     fullName: {
       type: String,
-      required: true,
+      required() {
+        return this.isProfileComplete;
+      },
       trim: true,
       minlength: 2,
       maxlength: 120,
@@ -43,7 +45,7 @@ const userSchema = new mongoose.Schema(
     phone: {
       type: String,
       required() {
-        return isRegularUserRole(this.role) && this.isProfileComplete;
+        return this.isProfileComplete;
       },
       trim: true,
       maxlength: 30,
@@ -51,7 +53,7 @@ const userSchema = new mongoose.Schema(
     graduationYear: {
       type: String,
       required() {
-        return isRegularUserRole(this.role) && this.isProfileComplete;
+        return this.isProfileComplete;
       },
       trim: true,
       maxlength: 40,
@@ -59,7 +61,7 @@ const userSchema = new mongoose.Schema(
     degree: {
       type: String,
       required() {
-        return isRegularUserRole(this.role) && this.isProfileComplete;
+        return this.isProfileComplete;
       },
       trim: true,
       maxlength: 120,

@@ -172,20 +172,57 @@ export const authAndUserPaths = {
     },
   },
   "/auth/verify-email/{token}": {
-    get: {
-      tags: ["Auth"],
-      summary: "Verify email address",
-      parameters: [{ name: "token", in: "path", required: true, schema: { type: "string" } }],
-      responses: {
-        200: successResponse({
-          description: "Email verified successfully.",
-          dataSchema: { type: "object", properties: { user: { $ref: "#/components/schemas/User" } } },
-          example: { user: { id: "1", fullName: "Tunde Adebayo", email: "tunde@email.com", isVerified: true, isProfileComplete: true } },
-        }),
-        400: errorResponse("Invalid or expired verification token."),
+  get: {
+    tags: ["Auth"],
+    summary: "Verify email address",
+    parameters: [
+      {
+        name: "token",
+        in: "path",
+        required: true,
+        schema: { type: "string" },
       },
+    ],
+    responses: {
+      200: successResponse({
+        description: "Email verified successfully.",
+        dataSchema: {
+          type: "object",
+          properties: {
+            token: {
+              type: "string",
+              description: "JWT authentication token",
+            },
+            user: {
+              $ref: "#/components/schemas/User",
+            },
+            isProfileComplete: {
+              type: "boolean",
+              example: false,
+            },
+            requiresProfileCompletion: {
+              type: "boolean",
+              example: true,
+            },
+          },
+        },
+        example: {
+          token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+          user: {
+            id: "1",
+            fullName: "Tunde Adebayo",
+            email: "tunde@email.com",
+            isVerified: true,
+            isProfileComplete: false,
+          },
+          isProfileComplete: false,
+          requiresProfileCompletion: true,
+        },
+      }),
+      400: errorResponse("Invalid or expired verification token."),
     },
   },
+},
   "/auth/me": {
     get: {
       tags: ["Auth"],

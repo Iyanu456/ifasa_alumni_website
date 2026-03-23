@@ -81,7 +81,7 @@ export default function OpportunitiesPage() {
         ) : (
           opportunities.map((opp) => (
             <OpportunityCard
-              key={opp.id}
+              key={opp._id}
               title={opp.title}
               organization={opp.organization}
               category={opp.category}
@@ -89,7 +89,7 @@ export default function OpportunitiesPage() {
               deadline={opp.deadline ? formatDate(opp.deadline) : undefined}
               description={opp.description}
               image={opp.coverImageUrl || "https://picsum.photos/seed/opportunity/800/600"}
-              link={`/opportunities/${opp.slug || opp.id}`}
+              link={`/opportunities/${opp.slug || opp._id}`}
             />
           ))
         )}

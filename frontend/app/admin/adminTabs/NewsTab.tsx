@@ -67,7 +67,7 @@ export default function NewsTab() {
     try {
       if (editingNews) {
         await updateNewsMutation.mutateAsync({
-          id: editingNews.id,
+          id: editingNews._id,
           data: form,
           image: selectedImage,
         });
@@ -161,7 +161,7 @@ export default function NewsTab() {
               <tbody>
                 {newsItems.map((news) => (
                   <tr
-                    key={news.id}
+                    key={news._id}
                     className="border-t border-gray-100 transition hover:bg-gray-50"
                   >
                     <td className="p-4 font-medium">{news.title}</td>
@@ -207,7 +207,7 @@ export default function NewsTab() {
                           <MoreVertical size={18} />
                         </button>
                         <button
-                          onClick={() => void handleDelete(news.id)}
+                          onClick={() => void handleDelete(news._id)}
                           className="rounded-lg border border-red-200 px-3 py-2 text-sm text-red-500 hover:bg-red-50"
                         >
                           <X size={18} />
@@ -224,7 +224,7 @@ export default function NewsTab() {
 
       {showModal ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-xl overflow-hidden rounded-2xl bg-white shadow-xl">
+          <div className="w-full max-w-xl overflow-y-scroll max-h-[85vh] rounded-2xl bg-white shadow-xl">
             <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
               <div>
                 <h2 className="text-lg font-semibold">

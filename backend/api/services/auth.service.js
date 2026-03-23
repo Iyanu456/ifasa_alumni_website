@@ -277,8 +277,8 @@ export const registerUser = async (payload) => {
     verificationTokenHash: verificationState.hashedToken,
     verificationTokenExpiresAt: verificationState.expiresAt,
     isVerified: false,
-    isProfileComplete: true,
-    status: "pending",
+    isProfileComplete: false,
+    status: "approved",
   });
 
   const verificationLink = buildVerificationUrl(
@@ -326,6 +326,7 @@ export const registerUser = async (payload) => {
 
 export const verifyUserEmail = async (token) => {
   const hashedToken = hashToken(token);
+
   const user = await User.findOne({
     verificationTokenHash: hashedToken,
     verificationTokenExpiresAt: { $gt: new Date() },
@@ -342,6 +343,8 @@ export const verifyUserEmail = async (token) => {
   user.isVerified = true;
   user.verificationTokenHash = undefined;
   user.verificationTokenExpiresAt = undefined;
+  user.lastLoginAt = new Date();
+
   await user.save();
 
   await logActivity({
@@ -353,7 +356,8 @@ export const verifyUserEmail = async (token) => {
     description: "Email address verified.",
   });
 
-  return user;
+  // 🔥 return full auth payload
+  return buildAuthResult(user);
 };
 
 export const resendVerificationEmail = async (emailAddress) => {

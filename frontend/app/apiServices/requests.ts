@@ -129,7 +129,7 @@ export const request = {
   },
 
   verifyEmail: async (token: string) => {
-    const response = await crudRequest.GET<ApiResponse<{ verified: boolean }>>(
+    const response = await crudRequest.GET<ApiResponse<{ token: string; user: User }>>(
       AUTH_ENDPOINTS.VERIFY_EMAIL(token),
     );
     return response.data;

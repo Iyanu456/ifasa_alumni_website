@@ -28,7 +28,7 @@ export const getApiErrorMessage = (error: unknown, fallback: string) => {
 
 export const useAppMutations = () => {
   const queryClient = useQueryClient();
-  const { setUser } = useStore();
+  const { setUser, user } = useStore();
 
   const loginMutation = useMutation({
     mutationFn: (data: LoginBody) => request.login(data),
@@ -40,10 +40,22 @@ export const useAppMutations = () => {
 
   const registerMutation = useMutation({
     mutationFn: (data: RegisterBody) => request.register(data),
+    onSuccess: (response) => {
+      setUser(response.data.user);
+    },
   });
 
   const verifyEmailMutation = useMutation({
     mutationFn: (token: string) => request.verifyEmail(token),
+    onSuccess: (response) => {
+      TokenService.setCookie(response.data.token);
+      setUser(response.data.user);
+    },
+    
+  });
+
+  const resendVerificationEmailMutation = useMutation({
+    mutationFn: (email: string) => request.resendVerification(email),
     
   });
 
@@ -268,6 +280,7 @@ export const useAppMutations = () => {
     loginMutation,
     registerMutation,
     verifyEmailMutation,
+    resendVerificationEmailMutation,
     googleCallbackMutation,
     updateOwnProfileMutation,
     createContactMutation,

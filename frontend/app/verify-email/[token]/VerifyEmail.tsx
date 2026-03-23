@@ -12,12 +12,23 @@ export default function VerifyEmailPage() {
   const { verifyEmailMutation } = useAppMutations();
 
   useEffect(() => {
-    if (!token) return;
+  if (!token) return;
 
-    const normalizedToken = Array.isArray(token) ? token[0] : token;
+  const normalizedToken = Array.isArray(token) ? token[0] : token;
 
-    verifyEmailMutation.mutate(normalizedToken);
-  }, [token]);
+  verifyEmailMutation.mutate(normalizedToken, {
+    onSuccess: (response) => {
+      const user = response.data.user;
+
+      // 🔥 Conditional redirect
+      if (user.isProfileComplete) {
+        router.replace("/");
+      } else {
+        router.replace("/complete-profile");
+      }
+    },
+  });
+}, [token]);
 
   const status = verifyEmailMutation.status;
 
@@ -63,10 +74,11 @@ export default function VerifyEmailPage() {
         {/* ACTION BUTTON */}
         {status !== "pending" && (
           <button
-            onClick={() => router.push("/login")}
+          disabled
+            //onClick={() => router.push("/login")}
             className="w-full bg-primary hover:bg-primary/90 transition-colors text-white py-2.5 rounded-lg font-medium shadow-sm"
           >
-            Go to Login
+            Redirecting...
           </button>
         )}
 

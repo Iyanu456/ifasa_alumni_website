@@ -263,7 +263,7 @@ export default function SettingsTab() {
 
                   <button
                     onClick={() => handleToggle("enableDonations")}
-                    className={`relative h-6 w-12 rounded-full transition ${
+                    className={`relative h-6 w-12 rounded-full transition duration-300 ease-in ${
                       settings.enableDonations ? "bg-primary" : "bg-gray-300"
                     }`}
                   >

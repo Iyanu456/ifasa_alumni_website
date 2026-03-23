@@ -1,15 +1,15 @@
 import { body, query } from "express-validator";
 
 export const registerValidation = [
-  body("fullName")
+  /*body("fullName")
     .trim()
     .isLength({ min: 2, max: 120 })
-    .withMessage("Full name must be between 2 and 120 characters."),
+    .withMessage("Full name must be between 2 and 120 characters."),*/
   body("email").isEmail().normalizeEmail().withMessage("Valid email is required."),
   body("password")
     .isLength({ min: 8 })
     .withMessage("Password must be at least 8 characters long."),
-  body("phone")
+  /*body("phone")
     .trim()
     .isLength({ min: 5, max: 30 })
     .withMessage("Phone number is required."),
@@ -25,7 +25,7 @@ export const registerValidation = [
   body("bio").optional().trim().isLength({ max: 1000 }),
   body("consent")
     .custom((value) => value === true || value === "true")
-    .withMessage("Consent is required."),
+    .withMessage("Consent is required."),*/
 ];
 
 export const loginValidation = [

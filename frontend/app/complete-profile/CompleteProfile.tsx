@@ -1,9 +1,8 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import InputField from "../components/InputField";
+import InputField from "@/app/components/InputField";
 import CustomSelect from "../components/CustomSelect";
 import { request } from "../apiServices/requests";
 import { TokenService } from "../apiServices/token-service";
@@ -174,11 +173,15 @@ export default function CompleteProfilePage() {
 
     try {
       
-        const response = await updateOwnProfileMutation.mutateAsync({
+        await updateOwnProfileMutation.mutateAsync({
           ...form,
           consent: form.consent,
+        }, {
+            onSuccess: () => {
+                router.push("/dashboard");
+            }
         });
-        router.push(response.data.user.role === "admin" ? "/admin" : "/community");
+
         return;
       
     } catch (error) {
@@ -370,7 +373,7 @@ export default function CompleteProfilePage() {
                 }
                 className="w-full bg-primary text-white py-3 rounded-lg font-medium hover:opacity-90 transition disabled:opacity-60"
               >
-                {submitLabel}
+                {registerMutation.isPending? "Submitting..." : "Submit"}
               </button>
             </div>
           </form>

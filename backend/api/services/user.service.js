@@ -5,17 +5,26 @@ import { REGULAR_USER_ROLES } from "../utils/roles.js";
 import { listDocuments } from "./query.service.js";
 import { logActivity } from "./activity.service.js";
 
-const buildAlumniFilter = ({ adminView = false, query = {} }) => {
-  const filter = {
-    role: { $in: REGULAR_USER_ROLES },
-  };
+import env from "../config/env.js"; // adjust path if needed
 
-  if (!adminView) {
-    filter.status = "approved";
-    filter.isVerified = true;
-    filter.isProfileComplete = true;
+const buildAlumniFilter = ({ adminView = false, query = {} }) => {
+  const filter = {};
+
+  // ✅ Exclude only the super admin
+  if (env.adminEmail) {
+    filter.email = { $ne: env.adminEmail };
   }
 
+  // 🔥 Public view: flexible visibility
+  if (!adminView) {
+    filter.$or = [
+      { status: "approved" },
+      { isVerified: true },
+      { isProfileComplete: true },
+    ];
+  }
+
+  // Optional filters
   if (adminView && query.status) {
     filter.status = query.status;
   }
@@ -25,11 +34,14 @@ const buildAlumniFilter = ({ adminView = false, query = {} }) => {
   }
 
   if (adminView && query.isVerified !== undefined) {
-    filter.isVerified = query.isVerified === "true";
+    filter.isVerified =
+      query.isVerified === true || query.isVerified === "true";
   }
 
   if (adminView && query.isProfileComplete !== undefined) {
-    filter.isProfileComplete = query.isProfileComplete === "true";
+    filter.isProfileComplete =
+      query.isProfileComplete === true ||
+      query.isProfileComplete === "true";
   }
 
   return filter;

@@ -116,7 +116,7 @@ export default function Home() {
           {!isLoading &&
             dashboard?.featuredEvents.slice(0, 4).map((event) => (
               <EventCard
-                key={event.id}
+                key={event._id}
                 title={event.title}
                 date={formatDate(event.date)}
                 location={event.location}
@@ -154,7 +154,7 @@ export default function Home() {
           {!isLoading &&
             dashboard?.featuredOpportunities.slice(0, 3).map((item) => (
               <NewsCard
-                key={item.id}
+                key={item._id}
                 title={item.title}
                 date={item.deadline ? formatDate(item.deadline) : undefined}
                 excerpt={item.description}
@@ -191,7 +191,7 @@ export default function Home() {
             {!isLoading &&
               dashboard?.spotlightAlumni.slice(0, 3).map((alumnus) => (
                 <AlumniSpotlight
-                  key={alumnus.id}
+                  key={alumnus._id}
                   name={alumnus.fullName}
                   role={[alumnus.currentRole, alumnus.location].filter(Boolean).join(", ")}
                   quote={
@@ -227,7 +227,7 @@ export default function Home() {
           {!isLoading &&
             dashboard?.latestNews.slice(0, 3).map((news) => (
               <NewsCard
-                key={news.id}
+                key={news._id}
                 title={news.title}
                 date={news.publishedAt ? formatDate(news.publishedAt) : undefined}
                 excerpt={news.excerpt || news.content}

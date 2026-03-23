@@ -95,7 +95,7 @@ export default function OpportunitiesTab() {
     try {
       if (editingOpportunity) {
         await updateOpportunityMutation.mutateAsync({
-          id: editingOpportunity.id,
+          id: editingOpportunity._id,
           data: form,
           image: selectedImage,
         });
@@ -200,7 +200,7 @@ export default function OpportunitiesTab() {
               <tbody>
                 {opportunities.map((opportunity) => (
                   <tr
-                    key={opportunity.id}
+                    key={opportunity._id}
                     className="border-t border-gray-100 transition hover:bg-gray-50"
                   >
                     <td className="p-4">
@@ -243,7 +243,7 @@ export default function OpportunitiesTab() {
                           <Pencil size={16} />
                         </button>
                         <button
-                          onClick={() => void handleDelete(opportunity.id)}
+                          onClick={() => void handleDelete(opportunity._id)}
                           className="rounded-lg border border-red-200 px-3 py-2 text-sm text-red-500 hover:bg-red-50"
                         >
                           <Trash2 size={16} />
@@ -260,7 +260,7 @@ export default function OpportunitiesTab() {
 
       {showModal ? (
         <div className="fixed inset-0 z-[2500] flex items-center justify-center bg-black/40 p-4">
-          <div className="max-md:max-h-[90vh] w-full max-w-xl overflow-hidden rounded-2xl bg-white shadow-xl max-md:overflow-y-scroll">
+          <div className="max-md:max-h-[90vh] w-full max-w-xl  overflow-y-scroll max-h-[85vh] rounded-2xl bg-white shadow-xl max-md:overflow-y-scroll">
             <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
               <div>
                 <h2 className="text-lg font-semibold">

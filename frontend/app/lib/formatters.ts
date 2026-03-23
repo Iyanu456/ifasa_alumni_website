@@ -55,3 +55,21 @@ export const formatRelativeTime = (value?: string | null) => {
 
 export const buildAvatarFallback = (seed: string) =>
   `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(seed)}`;
+
+
+export const truncateText = (
+  text: string,
+  maxLength: number,
+  suffix = "..."
+): string => {
+  if (!text) return "";
+
+  if (text.length <= maxLength) return text;
+
+  const truncated = text.slice(0, maxLength);
+  const lastSpace = truncated.lastIndexOf(" ");
+
+  return (lastSpace > 0
+    ? truncated.slice(0, lastSpace)
+    : truncated) + suffix;
+};

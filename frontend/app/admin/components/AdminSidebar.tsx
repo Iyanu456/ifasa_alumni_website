@@ -30,7 +30,7 @@ const menu = [
 export default function AdminSidebar({
   setSidebarClose,
 }: {
-  setSidebarClose?: () => void;
+  setSidebarClose: () => void;
 }) {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -38,6 +38,7 @@ export default function AdminSidebar({
   const logout = useStore((state) => state.logout);
 
   const handleLogout = () => {
+    setSidebarClose();
     logout();
     router.push("/admin/login");
   };

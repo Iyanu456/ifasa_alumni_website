@@ -54,7 +54,7 @@ export default function EventsTab() {
     try {
       if (editingEvent) {
         await updateEventMutation.mutateAsync({
-          id: editingEvent.id,
+          id: editingEvent._id,
           data: form,
           image: selectedImage,
         });
@@ -311,7 +311,7 @@ export default function EventsTab() {
           <div className="space-y-4">
             {events.map((eventItem) => (
               <div
-                key={eventItem.id}
+                key={eventItem._id}
                 className="flex flex-col gap-3 rounded-xl border border-gray-100 p-4 md:flex-row md:items-center md:justify-between"
               >
                 <div>
@@ -349,7 +349,7 @@ export default function EventsTab() {
                     Edit
                   </button>
                   <button
-                    onClick={() => void handleDelete(eventItem.id)}
+                    onClick={() => void handleDelete(eventItem._id)}
                     disabled={deleteEventMutation.isPending}
                     className="flex items-center gap-2 rounded-lg border border-red-200 px-4 py-2 text-sm text-red-500 hover:bg-red-50 disabled:opacity-60"
                   >

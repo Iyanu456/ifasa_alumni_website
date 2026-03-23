@@ -75,10 +75,12 @@ export default function AdminPage() {
   return (
     <div className="h-[89vh] md:mt-[-2em]">
       <div className="fixed top-[-1em] z-[2000] block transition duration-100 ease-in max-md:-translate-x-full">
-        <AdminSidebar />
+        <AdminSidebar setSidebarClose={function (): void {
+          throw new Error("Function not implemented.");
+        } } />
       </div>
 
-      <div className="grid pb-[2em] pr-5 max-md:p-4 md:pl-[16em]">
+      <div className="grid pb-[2em] pt-[3em] pr-5 max-md:p-4 md:pl-[16em]">
         <ActiveTab />
       </div>
     </div>

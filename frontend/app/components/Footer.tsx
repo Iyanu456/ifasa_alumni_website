@@ -13,6 +13,8 @@ export default function Footer() {
   const exactHiddenRoutes = [
     "/login",
     "/register",
+    "/email-sent",
+    "/dashboard"
   ];
 
   const prefixHiddenRoutes = [

@@ -6,10 +6,12 @@ import Link from "next/link";
 import { Menu, X, PanelLeft } from "lucide-react";
 import { usePathname } from "next/navigation";
 import AdminSidebar from "../admin/components/AdminSidebar";
+import { useStore } from "../lib/store";
 
 function NavLink({ href, label }: { href: string; label: string }) {
   const pathname = usePathname();
   const isActive = pathname === href;
+  
 
   return (
     <div className="flex flex-col gap-1.5 group">
@@ -37,8 +39,25 @@ export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const pathname = usePathname();
+  const isActive = pathname;
   const isAdminRoute = pathname.startsWith("/admin");
   const isAdminLogin = pathname === "/admin/login";
+  const { user } = useStore();
+  
+
+  const mobileNavLinks = [
+  { label: "Home", href: "/", type: "public" },
+  { label: "Events", href: "/events", type: "public" },
+  { label: "Community", href: "/community", type: "public" },
+  { label: "Gallery", href: "/gallery", type: "public" },
+  { label: "Contact us", href: "/contact", type: "public" },
+
+  // guest-only (hide when logged in)
+  { label: "Register", href: "/register", type: "guest" },
+
+  // protected (show only when logged in)
+  { label: "Profile", href: "/dashboard", type: "protected" },
+];
   
 
   useEffect(() => {
@@ -114,6 +133,7 @@ export default function Header() {
             {!isAdminRoute && <NavLink href="/community" label="Community" />}
             {!isAdminRoute && <NavLink href="/gallery" label="Gallery" />}
             {!isAdminRoute && <NavLink href="/contact" label="Contact us" />}
+            {!isAdminRoute && user?.email && <NavLink href="/dashboard" label="profile" />}
           </div>
 
           {/* Mobile Toggle */}
@@ -169,26 +189,33 @@ export default function Header() {
       {isMenuOpen && !isAdminRoute &&
       
       (
-        <div className="fixed right-5 top-[6.5rem] z-50 bg-white shadow-lg rounded-lg border border-gray-100 px-8 py-6 flex flex-col space-y-6 font-medium md:hidden transition-all duration-300">
-          <Link href="/" onClick={() => setIsMenuOpen(false)}>
-            Home
-          </Link>
-          <Link href="/events" onClick={() => setIsMenuOpen(false)}>
-            Events
-          </Link>
-          <Link href="/community" onClick={() => setIsMenuOpen(false)}>
-            Community
-          </Link>
-          <Link href="/gallery" onClick={() => setIsMenuOpen(false)}>
-            Gallery
-          </Link>
-          <Link href="/register" onClick={() => setIsMenuOpen(false)}>
-            Register
-          </Link>
-          <Link href="/contact" onClick={() => setIsMenuOpen(false)}>
-            Contact us
-          </Link>
-        </div>
+        <div className="fixed right-5 top-[6.5rem] z-50 bg-white shadow-lg rounded-lg border border-gray-100 px-5 py-6 flex flex-col space-y-3 font-medium md:hidden transition-all duration-300 min-w-[10em]">
+
+  {mobileNavLinks
+  .filter((link) => {
+    if (link.type === "guest") return !user?.email;
+    if (link.type === "protected") return user?.email;
+    return true; // public
+  })
+  .map((link) => {
+    const isActive = pathname === link.href;
+
+    return (
+      <Link
+        key={link.href}
+        href={link.href}
+        onClick={() => setIsMenuOpen(false)}
+        className={`p-2.5 rounded-lg transition ${
+          isActive
+            ? "bg-primary px-3 py-3  text-white"
+            : "text-gray-700 hover:bg-gray-100"
+        }`}
+      >
+        {link.label}
+      </Link>
+    );
+  })}
+</div>
       ) }
 
       

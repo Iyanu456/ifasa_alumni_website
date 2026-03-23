@@ -38,7 +38,7 @@ export default function RootLayout({
       </head>
       
         <body
-          className="pt-[6.8em] min-h-screen grid"
+          className="pt-[5.9em] min-h-screen grid"
         >
           <SuspenseWrapper>
           <Providers>
