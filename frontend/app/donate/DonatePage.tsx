@@ -140,14 +140,14 @@ export default function DonatePage() {
         </p>
       </section>
 
-      <section className="mx-auto mb-10 grid w-[92%] grid-cols-1 gap-4 sm:w-[90%] md:w-[80%] md:grid-cols-3">
+      {/*<section className="mx-auto mb-10 grid w-[92%] grid-cols-1 gap-4 sm:w-[90%] md:w-[80%] md:grid-cols-3">
         {formattedSummary.map((item) => (
           <div key={item.label} className="rounded-2xl border border-gray-100 bg-white p-5">
             <p className="text-sm text-gray-500">{item.label}</p>
             <p className="mt-1 text-2xl font-semibold">{item.value}</p>
           </div>
         ))}
-      </section>
+      </section>*/}
 
       <section className="mx-auto mb-16 grid w-[92%] gap-6 sm:w-[90%] md:w-[80%] sm:grid-cols-2 md:grid-cols-4">
         {impactCards.map(({ title, description, icon: Icon }) => (
@@ -162,13 +162,13 @@ export default function DonatePage() {
         ))}
       </section>
 
-      {settings?.donationAccountNumber || settings?.donationBankName ? (
+      {settings?.donationAccountNumber || settings?.donationBankName || settings?.accountName ? (
         <section className="mx-auto mb-10 w-[92%] rounded-2xl border border-gray-100 bg-white p-6 sm:w-[90%] md:w-[80%]">
           <h2 className="text-lg font-semibold">Direct Bank Donation</h2>
           <p className="mt-2 text-sm text-gray-600">
             Prefer a direct transfer? Use the account details below.
           </p>
-          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <div className="mt-4 grid gap-4 sm:grid-cols-3">
             <div className="rounded-xl bg-gray-50 p-4">
               <p className="text-xs uppercase tracking-wide text-gray-500">Account Number</p>
               <p className="mt-1 text-lg font-semibold">
@@ -179,6 +179,12 @@ export default function DonatePage() {
               <p className="text-xs uppercase tracking-wide text-gray-500">Bank Name</p>
               <p className="mt-1 text-lg font-semibold">
                 {settings?.donationBankName || "Not configured"}
+              </p>
+            </div>
+            <div className="rounded-xl bg-gray-50 p-4">
+              <p className="text-xs uppercase tracking-wide text-gray-500">Account Name</p>
+              <p className="mt-1 text-lg font-semibold">
+                {settings?.accountName || "Not configured"}
               </p>
             </div>
           </div>

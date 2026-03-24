@@ -45,7 +45,7 @@ export const getPublicSettings = async () => {
     contactPhone: settings.contactPhone,
     contactAddress: settings.contactAddress,
     socialLinks: settings.socialLinks,
-    donationLink: settings.donationLink,
+    accountName: settings.accountName,
     donationAccountNumber: settings.donationAccountNumber,
     donationBankName: settings.donationBankName,
     footerText: settings.footerText,
@@ -63,7 +63,7 @@ export const updateSettings = async (payload, actor) => {
   settings.contactEmail = payload.contactEmail ?? settings.contactEmail;
   settings.contactPhone = payload.contactPhone ?? settings.contactPhone;
   settings.contactAddress = payload.contactAddress ?? settings.contactAddress;
-  settings.donationLink = payload.donationLink ?? settings.donationLink;
+  settings.accountName = payload.accountName ?? settings.accountName;
   settings.donationAccountNumber =
     payload.donationAccountNumber ?? settings.donationAccountNumber;
   settings.donationBankName =

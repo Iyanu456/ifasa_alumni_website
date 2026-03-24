@@ -73,15 +73,22 @@ export const useAppMutations = () => {
   const loginMutation = useMutation({
     mutationFn: (data: LoginBody) => request.login(data),
     onSuccess: (response) => {
-      TokenService.setCookie(response.data.token);
+      console.log(response)
+      if (response.data.token) {
+        TokenService.setCookie(response.data.token);
       setUser(response.data.user);
+      }
+
+      if (response.data.user) setUser(response.data.user)
+      
     },
   });
 
   const registerMutation = useMutation({
     mutationFn: (data: RegisterBody) => request.register(data),
     onSuccess: (response) => {
-      setUser(response.data.user);
+      if (response.data.token) TokenService.setCookie(response.data.token)
+      if (response.data.user) setUser(response.data.user);
     },
   });
 

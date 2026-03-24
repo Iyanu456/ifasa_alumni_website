@@ -161,8 +161,10 @@ export default function ExecutivesTab() {
             </div>
 
             <div className="grid gap-4 px-6 py-6 md:grid-cols-2">
-              {(["name", "email", "role", "position", "title"] as const).map((field) => (
-                <input
+              {(["name", "email", "position" ] as const).map((field) => (
+                <div className="flex flex-col gap-1">
+                  <label className="text-sm font-semibold">{field}</label>
+                  <input
                   key={field}
                   value={String(form[field] ?? "")}
                   onChange={(event) =>
@@ -171,9 +173,11 @@ export default function ExecutivesTab() {
                   placeholder={field}
                   className="rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/30"
                 />
+                </div>
+                
               ))}
 
-              <input
+              {/*<input
                 type="number"
                 value={form.sortOrder ?? 0}
                 onChange={(event) =>
@@ -184,7 +188,20 @@ export default function ExecutivesTab() {
                 }
                 placeholder="Sort order"
                 className="rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/30"
+              />*/}
+
+                <div className="flex flex-col gap-1">
+                  <label className="text-sm font-semibold">profile picture</label>
+                  <input
+                type="file"
+                accept="image/*"
+                onChange={(event: ChangeEvent<HTMLInputElement>) =>
+                  setImage(event.target.files?.[0] || null)
+                }
+                className="rounded-lg border border-gray-200 px-3 py-2 h-fit mb-0 mt-auto text-sm"
               />
+                </div>
+              
 
               <label className="flex items-center gap-2 text-sm text-gray-600">
                 <input
@@ -197,14 +214,7 @@ export default function ExecutivesTab() {
                 Publish on public pages
               </label>
 
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(event: ChangeEvent<HTMLInputElement>) =>
-                  setImage(event.target.files?.[0] || null)
-                }
-                className="rounded-lg border border-gray-200 px-3 py-2 text-sm"
-              />
+              
             </div>
 
             <div className="flex justify-end gap-3 border-t border-gray-100 bg-gray-50 px-6 py-4">

@@ -99,8 +99,8 @@ const createFormData = (
 };
 
 export const request = {
-  register: async (data: RegisterBody): Promise<ApiResponse<{ user: User }>> => {
-    const response = await crudRequest.POST<RegisterBody, ApiResponse<{ user: User }>>(
+  register: async (data: RegisterBody): Promise<ApiResponse<{ user: User; token?: string }>> => {
+    const response = await crudRequest.POST<RegisterBody, ApiResponse<{ user: User; token?: string }>>(
       AUTH_ENDPOINTS.REGISTER,
       data,
     );
@@ -125,7 +125,7 @@ export const request = {
   resendVerification: async (email: string) => {
     const response = await crudRequest.POST<
       { email: string },
-      ApiResponse<{ sent: boolean; expiresAt: string; previewUrl?: string | null }>
+      ApiResponse<{ sent: boolean; expiresAt: string; previewUrl?: string | null; isVerified?: boolean }>
     >(AUTH_ENDPOINTS.RESEND_VERIFICATION, { email });
     return response.data;
   },

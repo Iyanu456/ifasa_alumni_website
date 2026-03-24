@@ -267,20 +267,97 @@ export const registerUser = async (payload) => {
   }
 
   const email = payload.email.toLowerCase().trim();
-  const existingUser = await User.findOne({ email });
 
+  const existingUser = await User.findOne({ email }).select(
+    "+password +verificationTokenHash +verificationTokenExpiresAt"
+  );
+
+  /**
+   * 🔥 HANDLE EXISTING USER
+   */
   if (existingUser) {
-    if (!existingUser.isVerified) {
+    const passwordMatches = await existingUser.comparePassword(
+      payload.password
+    );
+
+    if (!passwordMatches) {
       throw new ApiError(
-        409,
-        "Account already exists but email is not verified.",
-        "EMAIL_NOT_VERIFIED"
+        401,
+        "Invalid credentials. Please check your email and password",
+        "INVALID_CREDENTIALS"
       );
     }
 
-    throw new ApiError(409, "User already exists", "USER_EXISTS");
+    /**
+     * ✅ CASE: VERIFIED → LOG THEM IN
+     */
+    if (existingUser.isVerified) {
+      existingUser.lastLoginAt = new Date();
+      await existingUser.save();
+
+      await logActivity({
+        actor: existingUser,
+        action: "auth.login",
+        entityType: "user",
+        entityId: existingUser._id,
+        targetName: existingUser.fullName,
+        description: "User logged in via register route.",
+      });
+
+      return {
+        success: true,
+        message: "Account already exists. Logged you in.",
+        ...buildAuthResult(existingUser),
+      };
+    }
+
+    /**
+     * 🚧 CASE: NOT VERIFIED → RESEND EMAIL
+     */
+    const verificationState = buildVerificationState();
+
+    existingUser.verificationTokenHash = verificationState.hashedToken;
+    existingUser.verificationTokenExpiresAt = verificationState.expiresAt;
+
+    await existingUser.save();
+
+    const verificationLink = buildVerificationUrl(
+      verificationState.rawToken
+    );
+
+    await emailQueue.add(
+      "sendVerificationEmail",
+      {
+        email: existingUser.email,
+        fullName: existingUser.fullName,
+        verificationLink,
+      },
+      {
+        attempts: 5,
+        backoff: { type: "exponential", delay: 5000 },
+        removeOnComplete: true,
+        removeOnFail: false,
+      }
+    );
+
+    return {
+      success: false,
+      code: "EMAIL_NOT_VERIFIED",
+      message:
+        "Account exists but email is not verified. A new verification email has been sent.",
+      
+        isVerified: false,
+        email: existingUser.email,
+        user: {
+          email: existingUser.email
+        }
+      
+    };
   }
 
+  /**
+   * ✅ NEW USER FLOW
+   */
   const verificationState = buildVerificationState();
 
   const user = await User.create({
@@ -299,26 +376,20 @@ export const registerUser = async (payload) => {
     verificationState.rawToken
   );
 
-  /**
-   * 🧠 Push email job instead of sending directly
-   */
- await emailQueue.add(
-  "sendVerificationEmail",
-  {
-    email: user.email,
-    fullName: user.fullName,
-    verificationLink,
-  },
-  {
-    attempts: 5, // retry 5 times
-    backoff: {
-      type: "exponential",
-      delay: 5000, // 5 seconds
+  await emailQueue.add(
+    "sendVerificationEmail",
+    {
+      email: user.email,
+      fullName: user.fullName,
+      verificationLink,
     },
-    removeOnComplete: true,
-    removeOnFail: false,
-  }
-);
+    {
+      attempts: 5,
+      backoff: { type: "exponential", delay: 5000 },
+      removeOnComplete: true,
+      removeOnFail: false,
+    }
+  );
 
   await logActivity({
     actor: user,
@@ -330,10 +401,15 @@ export const registerUser = async (payload) => {
   });
 
   return {
-    user,
-    verification: {
-      sent: true, // optimistic
-      expiresAt: verificationState.expiresAt,
+    success: true,
+    message: "Registration successful. Verification email sent.",
+    
+      user,
+      isVerified: false,
+      verification: {
+        sent: true,
+        expiresAt: verificationState.expiresAt,
+      
     },
   };
 };
@@ -376,29 +452,59 @@ export const verifyUserEmail = async (token) => {
 
 export const resendVerificationEmail = async (emailAddress) => {
   const email = emailAddress.toLowerCase().trim();
+
   const user = await User.findOne({ email }).select(
-    "+verificationTokenHash +verificationTokenExpiresAt",
+    "+verificationTokenHash +verificationTokenExpiresAt"
   );
 
   if (!user) {
     throw new ApiError(404, "No account found with this email.", "USER_NOT_FOUND");
   }
 
+  /**
+   * 🔥 NEW BEHAVIOR: already verified → no error
+   */
   if (user.isVerified) {
-    throw new ApiError(400, "Email is already verified.", "ALREADY_VERIFIED");
+    return {
+      success: true,
+      code: "ALREADY_VERIFIED",
+      message: "Email is already verified.",
+    
+        isVerified: true,
+        email: user.email,
+      
+    };
   }
 
+  /**
+   * ✅ NOT VERIFIED → resend email
+   */
   const verificationState = buildVerificationState();
+
   user.verificationTokenHash = verificationState.hashedToken;
   user.verificationTokenExpiresAt = verificationState.expiresAt;
+
   await user.save();
 
   const verificationLink = buildVerificationUrl(verificationState.rawToken);
-  const emailResult = await sendVerificationEmail({
-    email: user.email,
-    fullName: user.fullName,
-    verificationLink,
-  });
+
+  await emailQueue.add(
+    "sendVerificationEmail",
+    {
+      email: user.email,
+      fullName: user.fullName,
+      verificationLink,
+    },
+    {
+      attempts: 5,
+      backoff: {
+        type: "exponential",
+        delay: 5000,
+      },
+      removeOnComplete: true,
+      removeOnFail: false,
+    }
+  );
 
   await logActivity({
     actor: user,
@@ -410,9 +516,16 @@ export const resendVerificationEmail = async (emailAddress) => {
   });
 
   return {
-    sent: true,
-    expiresAt: verificationState.expiresAt,
-    previewUrl: emailResult.previewUrl,
+    success: true,
+    message: "Verification email sent.",
+    data: {
+      isVerified: false,
+      email: user.email,
+      verification: {
+        sent: true,
+        expiresAt: verificationState.expiresAt,
+      },
+    },
   };
 };
 
@@ -494,7 +607,9 @@ export const resetPassword = async (token, password) => {
 
 export const loginUser = async ({ email: emailAddress, password }) => {
   const email = emailAddress.toLowerCase().trim();
-  const user = await User.findOne({ email }).select("+password");
+  const user = await User.findOne({ email }).select(
+    "+password +verificationTokenHash +verificationTokenExpiresAt"
+  );
 
   if (!user) {
     throw new ApiError(401, "Invalid email or password.", "INVALID_CREDENTIALS");
@@ -514,13 +629,56 @@ export const loginUser = async ({ email: emailAddress, password }) => {
     throw new ApiError(401, "Invalid email or password.", "INVALID_CREDENTIALS");
   }
 
+  /**
+   * 🔥 NEW LOGIC STARTS HERE
+   */
   if (!user.isVerified) {
-    throw new ApiError(
-      403,
-      "Email address has not been verified.",
-      "EMAIL_NOT_VERIFIED",
+    // regenerate verification token
+    const verificationState = buildVerificationState();
+
+    user.verificationTokenHash = verificationState.hashedToken;
+    user.verificationTokenExpiresAt = verificationState.expiresAt;
+
+    await user.save();
+
+    const verificationLink = buildVerificationUrl(verificationState.rawToken);
+
+    // send email (queue or direct)
+    await emailQueue.add(
+      "sendVerificationEmail",
+      {
+        email: user.email,
+        fullName: user.fullName,
+        verificationLink,
+      },
+      {
+        attempts: 5,
+        backoff: {
+          type: "exponential",
+          delay: 5000,
+        },
+        removeOnComplete: true,
+        removeOnFail: false,
+      }
     );
+
+    return {
+      success: false,
+      code: "EMAIL_NOT_VERIFIED",
+      message: "Email not verified. A new verification email has been sent.",
+      
+        isVerified: false,
+        user: { 
+          email: user.email,
+          id: user.id
+        },
+    
+    };
   }
+
+  /**
+   * 🔥 NORMAL LOGIN FLOW CONTINUES
+   */
 
   user.passwordResetTokenHash = undefined;
   user.passwordResetTokenExpiresAt = undefined;
@@ -537,7 +695,10 @@ export const loginUser = async ({ email: emailAddress, password }) => {
     description: "User logged in.",
   });
 
-  return buildAuthResult(user);
+  return {
+    success: true,
+    ...buildAuthResult(user),
+  };
 };
 
 export const getCurrentUserProfile = async (userId) => {

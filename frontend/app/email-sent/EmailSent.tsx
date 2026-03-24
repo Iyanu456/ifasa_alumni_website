@@ -38,7 +38,8 @@ export default function EmailSentPage() {
   const handleResend = async () => {
     resendVerificationEmailMutation.reset();
     try {
-      await resendVerificationEmailMutation.mutateAsync(email);
+      const response = await resendVerificationEmailMutation.mutateAsync(email);
+      if (response.data.isVerified) router.push("/login")
       setCooldown(30);
     } catch {}
   };

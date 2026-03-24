@@ -55,6 +55,9 @@ export default function Header() {
 
   // protected (show only when logged in)
   { label: "Profile", href: "/dashboard", type: "protected" },
+
+  // protected (show only when logged in)
+  { label: "Admin", href: "/admin", type: "admin" },
 ];
   
 
@@ -194,6 +197,7 @@ export default function Header() {
   .filter((link) => {
     if (link.type === "guest") return !user?.email;
     if (link.type === "protected") return user?.email;
+    if (link.type === "admin") return user?.role === "admin";
     return true; // public
   })
   .map((link) => {

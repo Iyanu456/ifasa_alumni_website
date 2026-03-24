@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import InputField from "../../components/InputField";
 import { TokenService } from "../../apiServices/token-service";
@@ -31,25 +32,47 @@ export default function LoginPage() {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setErrorMessage(null);
+ const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
+  setErrorMessage(null);
 
-    try {
-      const response = await loginMutation.mutateAsync(form);
+  try {
+    const response = await loginMutation.mutateAsync(form);
 
-      if (response.data.user.role !== "admin") {
-        TokenService.removeCookie();
-        setUser(null);
-        setErrorMessage("This account does not have admin access.");
-        return;
-      }
+    const data = response.data;
 
-      router.push("/admin");
-    } catch (error) {
-      setErrorMessage(getApiErrorMessage(error, "Unable to sign in."));
+    /**
+     * ✅ HANDLE UNVERIFIED CASE FIRST
+     */
+    if (data?.isVerified === false) {
+      router.push("/email-sent");
+      return;
     }
-  };
+
+    /**
+     * ✅ GUARD: Ensure user exists before accessing role
+     */
+    if (!data?.user) {
+      setErrorMessage("Invalid response from server.");
+      return;
+    }
+
+    /**
+     * ✅ ROLE CHECK (SAFE NOW)
+     */
+    if (data.user.role !== "admin") {
+      TokenService.removeCookie();
+      setUser(null);
+      setErrorMessage("This account does not have admin access.");
+      router.push("/login")
+      return;
+    }
+
+    router.push("/admin");
+  } catch (error) {
+    setErrorMessage(getApiErrorMessage(error, "Unable to sign in."));
+  }
+};
 
   const handleGoogleLogin = async () => {
       setErrorMessage(null);
@@ -119,9 +142,9 @@ export default function LoginPage() {
             type="button"
             onClick={handleGoogleLogin}
             disabled={isGoogleLoading}
-            className="w-full border border-gray-300 py-3 rounded-lg font-medium hover:bg-gray-50 transition disabled:opacity-60"
+            className="flex justify-center gap-1 w-full border items-center border-gray-300 py-3 rounded-lg font-medium hover:bg-gray-50 transition disabled:opacity-60"
           >
-            {isGoogleLoading ? "Redirecting to Google..." : "Continue with Google"}
+            <Image src={"/google.svg"} alt="icon" height={22} width={22} /> {isGoogleLoading ? "Redirecting to Google..." : "Continue with Google"} 
           </button>
 
           <p className="text-sm text-center text-gray-500">

@@ -33,10 +33,10 @@ export default function AlumniCard({ alumnus }: { alumnus: User }) {
         <p>
           <span className="font-medium text-wrap">Email: </span> {alumnus.email || "N/A"}
         </p>
-        <p className="line-clamp-2">
+        {alumnus.specialization && <p className="line-clamp-2">
           <span className="font-medium">Specialization: </span>
-          {alumnus.specialization || alumnus.degree || "Not specified"}
-        </p>
+          {alumnus.specialization || "Not specified"}
+        </p>}
       </div>
 
       {/*<Link

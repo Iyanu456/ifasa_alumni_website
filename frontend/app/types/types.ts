@@ -60,6 +60,7 @@ export type AuthPayload = {
   token: string;
   user: User;
   isProfileComplete: boolean;
+  isVerified?: boolean;
   requiresProfileCompletion: boolean;
 };
 
@@ -131,6 +132,7 @@ export type Settings = {
     twitter?: string;
   };
   donationLink?: string;
+  accountName?: string;
   donationAccountNumber?: string;
   donationBankName?: string;
   footerText?: string;

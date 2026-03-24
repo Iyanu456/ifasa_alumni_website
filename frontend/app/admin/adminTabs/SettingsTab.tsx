@@ -13,10 +13,11 @@ const defaultSettings: Settings = {
   contactPhone: "",
   contactAddress: "",
   socialLinks: { instagram: "", linkedin: "", twitter: "" },
-  donationLink: "",
+  //donationLink: "",
   donationAccountNumber: "",
   donationBankName: "",
   footerText: "",
+  accountName: "",
   allowRegistrations: true,
   enableDonations: true,
 };
@@ -135,7 +136,7 @@ export default function SettingsTab() {
         <section className="flex flex-col md:grid gap-4">
           <div className="space-y-4 rounded-xl border border-gray-100 bg-white p-6">
             <h2 className="font-semibold">Donation Settings</h2>
-            <input name="donationLink" value={settings.donationLink || ""} onChange={handleChange} placeholder="Paystack / Flutterwave link" className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/40" />
+            <input name="accountName" value={settings.accountName || ""} onChange={handleChange} placeholder="Account name" className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/40" />
             <div className="grid gap-4 md:grid-cols-2">
               <input name="donationAccountNumber" value={settings.donationAccountNumber || ""} onChange={handleChange} placeholder="Donation account number" className="rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/40" />
               <input name="donationBankName" value={settings.donationBankName || ""} onChange={handleChange} placeholder="Bank name" className="rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/40" />

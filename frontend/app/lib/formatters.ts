@@ -56,13 +56,18 @@ export const formatRelativeTime = (value?: string | null) => {
 const createSvgDataUri = (svg: string) =>
   `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
 
-const getInitials = (value: string) =>
-  value
-    .trim()
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() || "")
-    .join("") || "IA";
+const getInitials = (value?: string | null) => {
+  if (!value || typeof value !== "string") return "IA";
+
+  return (
+    value
+      .trim()
+      .split(/\s+/)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase() || "")
+      .join("") || "IA"
+  );
+};
 
 const escapeSvgText = (value: string) =>
   value

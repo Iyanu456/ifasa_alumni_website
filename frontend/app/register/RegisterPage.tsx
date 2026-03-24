@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import InputField from "../components/InputField";
 import { request } from "../apiServices/requests";
@@ -31,9 +32,10 @@ export default function RegisterPage() {
         password: auth.password,
       },
       {
-        onSuccess: () => {
+        onSuccess: (response) => {
           setTimeout(() => {
-            router.replace("/email-sent");
+            if (response.data.token) router.push("/dashboard")
+            else { router.replace("/email-sent"); }
           }, 1200);
         },
       },
@@ -118,15 +120,15 @@ export default function RegisterPage() {
             </button>
 
             <button
-              type="button"
-              onClick={handleGoogleRegister}
-              disabled={isGoogleLoading}
-              className="w-full border border-gray-300 py-3 rounded-lg font-medium hover:bg-gray-50 transition disabled:opacity-60"
-            >
-              {isGoogleLoading
-                ? "Redirecting to Google..."
-                : "Continue with Google"}
-            </button>
+                        type="button"
+                        onClick={handleGoogleRegister}
+                        disabled={isGoogleLoading}
+                        className="flex justify-center gap-1 w-full border items-center border-gray-300 py-3 rounded-lg font-medium hover:bg-gray-50 transition disabled:opacity-60"
+                      >
+                        <Image src={"/google.svg"} alt="icon" height={22} width={22} /> {isGoogleLoading ? "Redirecting to Google..." : "Continue with Google"} 
+                      </button>
+
+            
 
             <p className="text-sm text-center text-gray-500">
               Already registered?

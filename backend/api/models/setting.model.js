@@ -61,6 +61,12 @@ const settingSchema = new mongoose.Schema(
       trim: true,
       default: "",
     },
+    accountName: {
+      type: String,
+      trim: true,
+      default: "",
+      maxlength: 120,
+    },
     donationAccountNumber: {
       type: String,
       trim: true,

@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { CheckCircle, Loader2, XCircle } from "lucide-react";
+import { CheckCircle, Loader2, XCircle, ArrowLeft } from "lucide-react";
 import { getApiErrorMessage, useAppMutations } from "@/app/apiServices/mutations";
 
 export default function VerifyEmailPage() {
@@ -10,20 +10,25 @@ export default function VerifyEmailPage() {
   const router = useRouter();
   const { verifyEmailMutation } = useAppMutations();
 
-  useEffect(() => {
-    if (!token) return;
 
-    const normalizedToken = Array.isArray(token) ? token[0] : token;
 
-    verifyEmailMutation.mutate(normalizedToken, {
-      onSuccess: (response) => {
-        const user = response.data.user;
+const hasRun = useRef(false);
 
-        router.replace(user.isProfileComplete ? "/" : "/complete-profile");
-      },
-    });
-  }, [router, token, verifyEmailMutation]);
+useEffect(() => {
+  if (!token || hasRun.current) return;
 
+  hasRun.current = true;
+
+  const normalizedToken = Array.isArray(token) ? token[0] : token;
+
+  verifyEmailMutation.mutate(normalizedToken, {
+    onSuccess: (response) => {
+      const user = response.data.user;
+
+      router.replace(user.isProfileComplete ? "/dashboard" : "/complete-profile");
+    },
+  });
+}, [router, token]);
   const status = verifyEmailMutation.status;
   const message =
     status === "error"
@@ -57,10 +62,11 @@ export default function VerifyEmailPage() {
 
         {status !== "pending" && (
           <button
-            disabled
-            className="w-full rounded-lg bg-primary py-2.5 font-medium text-white shadow-sm transition-colors"
+            disabled={status !== "error" && status !== "success"}
+            onClick={() => router.push("/register")}
+            className="w-full flex justify-center gap-1 rounded-lg bg-primary py-2.5 font-medium text-white shadow-sm transition-colors"
           >
-            Redirecting...
+            {status==="error" && <ArrowLeft size={19} className="my-auto" />} {status === "error" ? "Back to sign In" : "Redirecting..."}
           </button>
         )}
       </div>

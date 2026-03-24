@@ -37,6 +37,8 @@ export const validateRequest = async (req, _res, next) => {
 
   await cleanupUploadedFiles(req);
 
+  console.log(result)
+
   return next(
     new ApiError(422, "Request validation failed.", "VALIDATION_ERROR", result.array()),
   );
