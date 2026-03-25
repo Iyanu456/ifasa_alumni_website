@@ -26,7 +26,7 @@ const menu = [
   { label: "Opportunities", icon: Briefcase, tab: "opportunities" },
   { label: "News", icon: Newspaper, tab: "news" },
   { label: "Gallery", icon: ImageIcon, tab: "gallery" },
-  { label: "Donations", icon: DollarSign, tab: "donations" },
+  //{ label: "Donations", icon: DollarSign, tab: "donations" },
 ];
 
 export default function AdminSidebar({

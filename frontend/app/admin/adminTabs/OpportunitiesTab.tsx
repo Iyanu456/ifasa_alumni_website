@@ -43,6 +43,7 @@ export default function OpportunitiesTab() {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [form, setForm] = useState<OpportunityFormBody>(initialForm);
   const [feedback, setFeedback] = useState("");
+  const [validationMessage, setValidationMessage] = useState("");
   const opportunitiesQuery = useAdminOpportunitiesQuery({ search, limit: 50 });
   const {
     createOpportunityMutation,
@@ -87,32 +88,71 @@ export default function OpportunitiesTab() {
     setSelectedImage(null);
     setShowModal(true);
     setFeedback("");
+    setValidationMessage("")
   };
 
   const handleSubmit = async () => {
-    setFeedback("");
+  setFeedback("");
+  setValidationMessage("")
 
-    try {
-      if (editingOpportunity) {
-        await updateOpportunityMutation.mutateAsync({
-          id: editingOpportunity._id,
-          data: form,
-          image: selectedImage,
-        });
-        setFeedback("Opportunity updated successfully.");
-      } else {
-        await createOpportunityMutation.mutateAsync({
-          data: form,
-          image: selectedImage,
-        });
-        setFeedback("Opportunity created successfully.");
-      }
+  // 🔒 INPUT VALIDATION
+  if (!form.title.trim()) {
+    setValidationMessage("Title is required.");
+    return;
+  }
 
-      resetForm();
-    } catch {
-      setFeedback("");
+  if (!form.organization.trim()) {
+    setValidationMessage("Organization is required.");
+    return;
+  }
+
+  if (!form.category) {
+    setValidationMessage("Please select an opportunity type.");
+    return;
+  }
+
+  if (!form.description.trim()) {
+    setValidationMessage("Description is required.");
+    return;
+  }
+
+  if (form.applicationLink && !/^https?:\/\/.+/i.test(form.applicationLink)) {
+    setValidationMessage("Please enter a valid application link (must start with http/https).");
+    return;
+  }
+
+  if (form.deadline) {
+    const selectedDate = new Date(form.deadline);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (selectedDate < today) {
+      setValidationMessage("Deadline cannot be in the past.");
+      return;
     }
-  };
+  }
+
+  try {
+    if (editingOpportunity) {
+      await updateOpportunityMutation.mutateAsync({
+        id: editingOpportunity._id,
+        data: form,
+        image: selectedImage,
+      });
+      setFeedback("Opportunity updated successfully.");
+    } else {
+      await createOpportunityMutation.mutateAsync({
+        data: form,
+        image: selectedImage,
+      });
+      setFeedback("Opportunity created successfully.");
+    }
+
+    resetForm();
+  } catch {
+    setFeedback("");
+  }
+};
 
   const handleDelete = async (id: string) => {
     if (typeof window !== "undefined") {
@@ -441,7 +481,10 @@ export default function OpportunitiesTab() {
                 />
                 Feature on homepage
               </label>
+              {validationMessage ? <p className="text-sm text-red-600">{validationMessage}</p> : null}
             </div>
+
+            
 
             <div className="flex justify-end gap-3 border-t border-gray-100 bg-gray-50 px-6 py-4">
               <button

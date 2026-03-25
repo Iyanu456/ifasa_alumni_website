@@ -30,6 +30,7 @@ export type ApprovalStatus = "pending" | "approved";
 export type User = {
   _id: string;
   fullName: string;
+  nickname?: string;
   email: string;
   googleId?: string | null;
   authProvider: AuthProvider;

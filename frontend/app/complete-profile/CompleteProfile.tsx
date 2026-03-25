@@ -14,6 +14,7 @@ import { useStore } from "../lib/store";
 
 type RegisterFormState = {
   fullName: string;
+  nickname: string;
   email: string;
   phone: string;
   graduationYear: string;
@@ -28,6 +29,7 @@ type RegisterFormState = {
 
 const initialFormState: RegisterFormState = {
   fullName: "",
+  nickname: "",
   email: "",
   phone: "",
   graduationYear: "",
@@ -265,23 +267,6 @@ export default function CompleteProfilePage() {
                 onChange={(val) => updateFormField("phone", val)}
               />
 
-              <InputField
-                label="Current location"
-                placeholder="City, Country"
-                value={form.location}
-                onChange={(val) => updateFormField("location", val)}
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <CustomSelect
-                label="Graduation Year"
-                required
-                options={graduationYearOptions}
-                placeholder={form.graduationYear || "Select..."}
-                onChange={(val) => updateFormField("graduationYear", val)}
-              />
-
               <CustomSelect
                 label="Degree"
                 required
@@ -297,12 +282,46 @@ export default function CompleteProfilePage() {
                 onChange={(val) => updateFormField("degree", val)}
               />
 
+             
+
+              
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              
+
+              <CustomSelect
+                label="Graduation Year"
+                required
+                options={graduationYearOptions}
+                placeholder={form.graduationYear || "Select..."}
+                onChange={(val) => updateFormField("graduationYear", val)}
+              />
+
+              <InputField
+                label="Current location"
+                placeholder="City, Country"
+                value={form.location}
+                onChange={(val) => updateFormField("location", val)}
+              />
+
+               <InputField
+                label="Nickname"
+                placeholder="Nickname"
+                value={form.nickname}
+                onChange={(val) => updateFormField("nickname", val)}
+              />
+
+              
+
               <InputField
                 label="Specialization"
                 placeholder="Specialization (optional)"
                 value={form.specialization}
                 onChange={(val) => updateFormField("specialization", val)}
               />
+
+              
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

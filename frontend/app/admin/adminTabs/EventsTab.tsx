@@ -215,6 +215,7 @@ export default function EventsTab() {
           <label className="mb-2 block text-sm font-medium">Event Description</label>
           <textarea
             rows={4}
+            required
             placeholder="Describe the event..."
             value={form.description}
             onChange={(event) =>

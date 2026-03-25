@@ -15,6 +15,11 @@ const userSchema = new mongoose.Schema(
       minlength: 2,
       maxlength: 120,
     },
+    nickname: {
+      type: String,
+      trim: true,
+      maxlength: 120,
+    },
     googleId: {
       type: String,
       unique: true,

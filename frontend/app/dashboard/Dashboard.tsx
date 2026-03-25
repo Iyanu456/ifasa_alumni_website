@@ -5,13 +5,24 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import InputField from "@/app/components/InputField";
 import CustomSelect from "../components/CustomSelect";
-import { getApiErrorMessage, useAppMutations } from "@/app/apiServices/mutations";
+import {
+  getApiErrorMessage,
+  useAppMutations,
+} from "@/app/apiServices/mutations";
 import { buildAvatarFallback } from "../lib/formatters";
 import { useStore } from "@/app/lib/store";
-import { ArrowLeft, Camera, CheckCircle, Loader2, LogOut, User } from "lucide-react";
+import {
+  ArrowLeft,
+  Camera,
+  CheckCircle,
+  Loader2,
+  LogOut,
+  User,
+} from "lucide-react";
 
 type FormState = {
   fullName?: string;
+  nickname?: string;
   phone?: string;
   graduationYear?: string;
   degree?: string;
@@ -33,6 +44,7 @@ export default function DashboardPage() {
 
   const currentForm = {
     fullName: form.fullName ?? user?.fullName ?? "",
+    nickname: form.nickname ?? user?.nickname ?? "",
     phone: form.phone ?? user?.phone ?? "",
     graduationYear: form.graduationYear ?? user?.graduationYear ?? "",
     degree: form.degree ?? user?.degree ?? "",
@@ -77,7 +89,11 @@ export default function DashboardPage() {
   };
 
   const isComplete =
-    user?.fullName && user?.phone && user?.graduationYear && user?.degree && user?.consent;
+    user?.fullName &&
+    user?.phone &&
+    user?.graduationYear &&
+    user?.degree &&
+    user?.consent;
 
   return (
     <div className="min-h-screen bg-gray-50 px-4 py-8 font-montserrat">
@@ -87,7 +103,9 @@ export default function DashboardPage() {
             <h1 className="text-lg md:text-3xl font-semibold text-gray-900">
               Welcome, {user?.fullName || "Alumnus"}
             </h1>
-            <p className="text-sm text-gray-500">Manage your profile and stay connected</p>
+            <p className="text-sm text-gray-500">
+              Manage your profile and stay connected
+            </p>
           </div>
 
           <div className="flex items-center gap-4">
@@ -110,11 +128,17 @@ export default function DashboardPage() {
 
         <div className="bg-white rounded-2xl p-5 border border-gray-200 flex items-center justify-between shadow-sm">
           <div className="flex items-center gap-3">
-            <CheckCircle className={isComplete ? "text-green-500" : "text-gray-300"} />
+            <CheckCircle
+              className={isComplete ? "text-green-500" : "text-gray-300"}
+            />
             <div>
-              <p className="text-sm font-medium text-gray-900">Profile Status</p>
+              <p className="text-sm font-medium text-gray-900">
+                Profile Status
+              </p>
               <p className="text-xs text-gray-500">
-                {isComplete ? "Your profile is complete" : "Complete your profile to unlock full access"}
+                {isComplete
+                  ? "Your profile is complete"
+                  : "Complete your profile to unlock full access"}
               </p>
             </div>
           </div>
@@ -125,7 +149,10 @@ export default function DashboardPage() {
           ) : null}
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-white rounded-2xl p-6 border border-gray-200 space-y-6 shadow-sm">
+        <form
+          onSubmit={handleSubmit}
+          className="bg-white rounded-2xl p-6 border border-gray-200 space-y-6 shadow-sm"
+        >
           <h2 className="text-lg font-semibold flex items-center gap-2">
             <User size={18} /> Profile Information
           </h2>
@@ -162,30 +189,76 @@ export default function DashboardPage() {
                 />
               </label>
             </div>
-            <p className="text-xs text-gray-500">Click to upload profile picture</p>
+            <p className="text-xs text-gray-500">
+              Click to upload profile picture
+            </p>
           </div>
 
           {message ? <p className="text-sm text-primary">{message}</p> : null}
 
           <div className="grid md:grid-cols-2 gap-4">
-            <InputField label="Full Name" placeholder="Full name" value={currentForm.fullName} onChange={(val) => handleChange("fullName", val)} />
-            <InputField label="Phone Number" type="tel" placeholder="Phone number" value={currentForm.phone} onChange={(val) => handleChange("phone", val)} />
+            <InputField
+              label="Full Name"
+              placeholder="Full name"
+              value={currentForm.fullName}
+              onChange={(val) => handleChange("fullName", val)}
+            />
+            <InputField
+              label="Phone Number"
+              type="tel"
+              placeholder="Phone number"
+              value={currentForm.phone}
+              onChange={(val) => handleChange("phone", val)}
+            />
           </div>
 
-          <div className="grid gap-4 md:grid-cols-3">
-            <InputField label="Graduation year" placeholder="e.g. 2018" value={currentForm.graduationYear} onChange={(val) => handleChange("graduationYear", val)} />
-            <InputField label="Current location" placeholder="City, Country" value={currentForm.location} onChange={(val) => handleChange("location", val)} />
+          <div className="grid gap-4 md:grid-cols-2">
+            <InputField
+              label="Graduation year"
+              placeholder="e.g. 2018"
+              value={currentForm.graduationYear}
+              onChange={(val) => handleChange("graduationYear", val)}
+            />
+            <InputField
+              label="Nickname"
+              placeholder="Nickname"
+              value={currentForm.nickname}
+              onChange={(val) => handleChange("nickname", val)}
+            />
+            <InputField
+              label="Current location"
+              placeholder="City, Country"
+              value={currentForm.location}
+              onChange={(val) => handleChange("location", val)}
+            />
             <CustomSelect
               label="Degree"
-              options={["Select...", "B.Sc Architecture", "M.Sc Architecture", "M.Arch", "PhD", "Others, please specify"]}
+              options={[
+                "Select...",
+                "B.Sc Architecture",
+                "M.Sc Architecture",
+                "M.Arch",
+                "PhD",
+                "Others, please specify",
+              ]}
               placeholder={currentForm.degree || "Select..."}
               onChange={(val) => handleChange("degree", val)}
             />
           </div>
 
           <div className="grid md:grid-cols-2 gap-4">
-            <InputField label="Current role / position" placeholder="Your current role" value={currentForm.currentRole} onChange={(val) => handleChange("currentRole", val)} />
-            <InputField label="Company / organization" placeholder="Company or organization" value={currentForm.company} onChange={(val) => handleChange("company", val)} />
+            <InputField
+              label="Current role / position"
+              placeholder="Your current role"
+              value={currentForm.currentRole}
+              onChange={(val) => handleChange("currentRole", val)}
+            />
+            <InputField
+              label="Company / organization"
+              placeholder="Company or organization"
+              value={currentForm.company}
+              onChange={(val) => handleChange("company", val)}
+            />
           </div>
 
           <div className="pt-3">
@@ -205,11 +278,14 @@ export default function DashboardPage() {
             <input
               type="checkbox"
               checked={Boolean(currentForm.consent)}
-              onChange={(event) => handleChange("consent", event.target.checked)}
+              onChange={(event) =>
+                handleChange("consent", event.target.checked)
+              }
               className="mt-1 accent-primary"
             />
             <span>
-              I agree to have my information stored for alumni networking and communication purposes.
+              I agree to have my information stored for alumni networking and
+              communication purposes.
             </span>
           </label>
 

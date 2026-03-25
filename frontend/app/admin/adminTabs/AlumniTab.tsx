@@ -68,6 +68,7 @@ export default function AlumniTab() {
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [editForm, setEditForm] = useState<EditFormState | null>(null);
+  const [validationMessage, setValidationMessage] = useState("");
   const usersQuery = useAdminUsersQuery({ search, limit: 50 });
   const {
     approveAlumnusMutation,
@@ -137,6 +138,42 @@ export default function AlumniTab() {
     if (!editForm) {
       return;
     }
+
+     if (!editForm.email.trim()) {
+    setValidationMessage("Email is required.");
+    return;
+  }
+
+  if (!editingUser && !editForm.password.trim()) {
+    setValidationMessage("Temporary password is required.");
+    return;
+  }
+
+  if (!editForm.fullName.trim()) {
+    setValidationMessage("Full name is required.");
+    return;
+  }
+
+  if (!editForm.graduationYear.trim()) {
+    setValidationMessage("Graduation year is required.");
+    return;
+  }
+
+  if (!editForm.phone.trim()) {
+    setValidationMessage("Phone no is required.");
+    return;
+  }
+
+  if (!editForm.degree.trim()) {
+    setValidationMessage("Degree is required.");
+    return;
+  }
+
+  setValidationMessage("")
+  
+
+
+  
 
     if (!editingUser) {
       await createAlumnusMutation.mutateAsync({
@@ -261,7 +298,7 @@ export default function AlumniTab() {
 
               <tbody>
                 {users.map((user) => {
-                  const avatar = user.avatarUrl || buildAvatarFallback(user.fullName);
+                  const avatar = buildAvatarFallback(user.fullName);
 
                   return (
                     <tr
@@ -283,9 +320,9 @@ export default function AlumniTab() {
                             <p className="font-medium max-md:hidden block">{user.fullName}</p>
                             <p className="font-medium max-md:block hidden">{truncateText(user.fullName??"", 14)}</p>
                             <p className="text-xs text-gray-500 block max-md:hidden">{user.email}</p>
-                            <p className="text-xs text-gray-500 ">{truncateText(user.email??"", 15) }</p>
+                            <p className="text-xs text-gray-500 max-md:block hidden ">{truncateText(user.email??"", 15) }</p>
                             <p className="text-xs text-gray-400 md:hidden">
-                              {user.location || "No location set"}
+                              {user.location || ""}
                             </p>
                           </div>
                         </div>
@@ -323,7 +360,7 @@ export default function AlumniTab() {
                         </span>
                       </td>
                       <td className="relative p-4 text-right">
-                        <button
+                        {user.fullName !== "Administrator" && <button
                           onClick={(event) => {
                             event.stopPropagation();
                             setActiveMenu((current) =>
@@ -333,7 +370,7 @@ export default function AlumniTab() {
                           className="rounded p-2 hover:bg-gray-100"
                         >
                           <MoreVertical size={18} />
-                        </button>
+                        </button>}
 
                         {activeMenu === user._id ? (
                           <div className="absolute right-4 z-4000 mt-2 w-44 rounded-lg border border-gray-100 bg-white text-sm shadow-lg">
@@ -357,13 +394,13 @@ export default function AlumniTab() {
                               </button>
                             ) : null}
 
-                            <button
+                            {user.fullName !== "Administrator" && <button
                               onClick={() => void handleRoleToggle(user)}
                               disabled={isSubmitting}
                               className="block w-full px-4 py-2 text-left hover:bg-gray-50 disabled:opacity-60"
                             >
                               {user.role === "admin" ? "Remove Admin" : "Make Admin"}
-                            </button>
+                            </button>}
 
                             {user.role !== "admin" ? (
                               <button
@@ -444,6 +481,7 @@ export default function AlumniTab() {
                 className="rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/30"
               />
               <input
+                type="number"
                 value={editForm.graduationYear}
                 onChange={(event) =>
                   setEditForm((current) =>
@@ -453,9 +491,11 @@ export default function AlumniTab() {
                   )
                 }
                 placeholder="Graduation year"
+                min="1900"
                 className="rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/30"
               />
               <input
+              type="number"
                 value={editForm.phone}
                 onChange={(event) =>
                   setEditForm((current) =>
@@ -596,6 +636,7 @@ export default function AlumniTab() {
                   />
                   Feature in spotlight
                 </label>
+                {validationMessage ? <p className="text-sm text-red-600">{validationMessage}</p> : null}
               </div>
             </div>
 

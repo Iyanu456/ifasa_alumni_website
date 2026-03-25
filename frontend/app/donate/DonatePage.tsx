@@ -1,16 +1,18 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import {
   Building2,
   GraduationCap,
   HeartHandshake,
   Wrench,
+  Copy,
+  Check,
+  Mail,
+  Phone,
 } from "lucide-react";
-import { getApiErrorMessage, useAppMutations } from "../apiServices/mutations";
 import { useDonationSummaryQuery, usePublicSettingsQuery } from "../apiServices/queries";
-import { formatCurrency } from "../lib/formatters";
 
 const impactCards = [
   {
@@ -36,119 +38,44 @@ const impactCards = [
 ];
 
 export default function DonatePage() {
-  const [donationForm, setDonationForm] = useState({
-    amount: "",
-    donorName: "",
-    email: "",
-    note: "",
-  });
-  const [sponsorForm, setSponsorForm] = useState({
-    name: "",
-    email: "",
-    organization: "",
-    message: "",
-  });
-  const [donationNotice, setDonationNotice] = useState("");
-  const [sponsorshipNotice, setSponsorshipNotice] = useState("");
-  const { createDonationMutation, createSponsorshipMutation } = useAppMutations();
-  const summaryQuery = useDonationSummaryQuery();
   const settingsQuery = usePublicSettingsQuery();
+  const summaryQuery = useDonationSummaryQuery();
 
-  const summary = summaryQuery.data?.data;
   const settings = settingsQuery.data?.data.settings;
 
-  const donationDisabled = settings?.enableDonations === false;
+  const [copiedField, setCopiedField] = useState<string | null>(null);
 
-  const formattedSummary = useMemo(
-    () => [
-      {
-        label: "Total Donations",
-        value: formatCurrency(summary?.totalAmount || 0),
-      },
-      {
-        label: "Total Donors",
-        value: String(summary?.donorCount || 0),
-      },
-      {
-        label: "Pending Donations",
-        value: String(summary?.pendingDonations || 0),
-      },
-    ],
-    [summary],
+  const handleCopy = async (value: string, field: string) => {
+    if (!value) return;
+    await navigator.clipboard.writeText(value);
+    setCopiedField(field);
+    setTimeout(() => setCopiedField(null), 2000);
+  };
+
+  const renderCopyButton = (value: string, field: string) => (
+    <button
+      onClick={() => handleCopy(value, field)}
+      className="ml-2 inline-flex items-center gap-1 text-xs text-primary hover:underline"
+    >
+      {copiedField === field ? <Check size={14} /> : <Copy size={14} />}
+      {copiedField === field ? "Copied" : "Copy"}
+    </button>
   );
-
-  const handleDonationSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setDonationNotice("");
-
-    try {
-      const response = await createDonationMutation.mutateAsync({
-        amount: Number(donationForm.amount),
-        donorName: donationForm.donorName || undefined,
-        email: donationForm.email || undefined,
-        note: donationForm.note || undefined,
-      });
-
-      setDonationForm({
-        amount: "",
-        donorName: "",
-        email: "",
-        note: "",
-      });
-
-      const checkoutUrl = response.data.checkoutUrl || settings?.donationLink;
-
-      if (checkoutUrl && typeof window !== "undefined") {
-        window.location.assign(checkoutUrl);
-        return;
-      }
-
-      setDonationNotice("Your donation intent has been recorded successfully.");
-    } catch {
-      setDonationNotice("");
-    }
-  };
-
-  const handleSponsorSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setSponsorshipNotice("");
-
-    try {
-      await createSponsorshipMutation.mutateAsync(sponsorForm);
-      setSponsorForm({
-        name: "",
-        email: "",
-        organization: "",
-        message: "",
-      });
-      setSponsorshipNotice("Your sponsorship request has been submitted.");
-    } catch {
-      setSponsorshipNotice("");
-    }
-  };
 
   return (
     <main className="min-h-screen bg-[#f8f8f8] pt-[6em] pb-[5em]">
+      {/* Header */}
       <section className="mx-auto mb-14 w-[92%] text-center sm:w-[90%] md:w-[80%]">
         <h1 className="mb-3 text-2xl font-semibold sm:text-3xl md:text-4xl">
-          Donate &amp; Sponsor
+          Support the Alumni Community
         </h1>
         <p className="mx-auto max-w-2xl text-gray-600">
-          Your support strengthens the alumni community, empowers students, and
-          improves learning facilities within the Department of Architecture,
-          OAU.
+          Your contribution helps empower students, improve facilities, and strengthen
+          the Ife Architecture Alumni network.
         </p>
       </section>
 
-      {/*<section className="mx-auto mb-10 grid w-[92%] grid-cols-1 gap-4 sm:w-[90%] md:w-[80%] md:grid-cols-3">
-        {formattedSummary.map((item) => (
-          <div key={item.label} className="rounded-2xl border border-gray-100 bg-white p-5">
-            <p className="text-sm text-gray-500">{item.label}</p>
-            <p className="mt-1 text-2xl font-semibold">{item.value}</p>
-          </div>
-        ))}
-      </section>*/}
-
+      {/* Impact */}
       <section className="mx-auto mb-16 grid w-[92%] gap-6 sm:w-[90%] md:w-[80%] sm:grid-cols-2 md:grid-cols-4">
         {impactCards.map(({ title, description, icon: Icon }) => (
           <div
@@ -162,204 +89,127 @@ export default function DonatePage() {
         ))}
       </section>
 
-      {settings?.donationAccountNumber || settings?.donationBankName || settings?.accountName ? (
-        <section className="mx-auto mb-10 w-[92%] rounded-2xl border border-gray-100 bg-white p-6 sm:w-[90%] md:w-[80%]">
-          <h2 className="text-lg font-semibold">Direct Bank Donation</h2>
-          <p className="mt-2 text-sm text-gray-600">
-            Prefer a direct transfer? Use the account details below.
-          </p>
-          <div className="mt-4 grid gap-4 sm:grid-cols-3">
-            <div className="rounded-xl bg-gray-50 p-4">
-              <p className="text-xs uppercase tracking-wide text-gray-500">Account Number</p>
-              <p className="mt-1 text-lg font-semibold">
+      {/* Bank Details */}
+      <section className="mx-auto mb-12 w-[92%] rounded-2xl border border-gray-100 bg-white p-6 sm:w-[90%] md:w-[80%]">
+        <h2 className="text-lg font-semibold">Direct Bank Donation</h2>
+        <p className="mt-2 text-sm text-gray-600">
+          Make a direct transfer using the details below. Kindly include your name as reference.
+        </p>
+
+        <div className="mt-5 grid gap-4 sm:grid-cols-3">
+          <div className="rounded-xl bg-gray-50 p-4">
+            <p className="text-xs uppercase text-gray-500">Account Number</p>
+            <div className="mt-1 flex items-center justify-between">
+              <p className="text-lg font-semibold">
                 {settings?.donationAccountNumber || "Not configured"}
               </p>
-            </div>
-            <div className="rounded-xl bg-gray-50 p-4">
-              <p className="text-xs uppercase tracking-wide text-gray-500">Bank Name</p>
-              <p className="mt-1 text-lg font-semibold">
-                {settings?.donationBankName || "Not configured"}
-              </p>
-            </div>
-            <div className="rounded-xl bg-gray-50 p-4">
-              <p className="text-xs uppercase tracking-wide text-gray-500">Account Name</p>
-              <p className="mt-1 text-lg font-semibold">
-                {settings?.accountName || "Not configured"}
-              </p>
+              {settings?.donationAccountNumber &&
+                renderCopyButton(settings.donationAccountNumber, "account")}
             </div>
           </div>
-        </section>
-      ) : null}
 
-      <section className="mx-auto mb-16 grid h-[max-content] w-[92%] items-start gap-8 sm:w-[90%] md:w-[80%] md:grid-cols-2">
-        <div className="grid h-full rounded-2xl border border-gray-100 bg-white p-6">
-          <h2 className="mb-3 text-lg font-semibold">Make a Donation</h2>
-          <p className="mb-4 text-sm text-gray-600">
-            Your support funds mentorship programs, student support initiatives,
-            studio improvements, and alumni-led projects.
-          </p>
+          <div className="rounded-xl bg-gray-50 p-4">
+            <p className="text-xs uppercase text-gray-500">Bank Name</p>
+            <div className="mt-1 flex items-center justify-between">
+              <p className="text-lg font-semibold">
+                {settings?.donationBankName || "Not configured"}
+              </p>
+              {settings?.donationBankName &&
+                renderCopyButton(settings.donationBankName, "bank")}
+            </div>
+          </div>
 
-          <form onSubmit={handleDonationSubmit} className="flex flex-col gap-3">
-            <input
-              type="number"
-              min={1}
-              required
-              disabled={donationDisabled || createDonationMutation.isPending}
-              placeholder="Enter donation amount (NGN)"
-              value={donationForm.amount}
-              onChange={(event) =>
-                setDonationForm((prev) => ({ ...prev, amount: event.target.value }))
-              }
-              className="w-full rounded-lg border border-gray-300 bg-[#FAFAFA] px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/30"
-            />
-
-            <input
-              type="text"
-              placeholder="Full name (optional)"
-              value={donationForm.donorName}
-              onChange={(event) =>
-                setDonationForm((prev) => ({ ...prev, donorName: event.target.value }))
-              }
-              className="w-full rounded-lg border border-gray-300 bg-[#FAFAFA] px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/30"
-            />
-
-            <input
-              type="email"
-              placeholder="Email address (optional, for receipt)"
-              value={donationForm.email}
-              onChange={(event) =>
-                setDonationForm((prev) => ({ ...prev, email: event.target.value }))
-              }
-              className="w-full rounded-lg border border-gray-300 bg-[#FAFAFA] px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/30"
-            />
-
-            <textarea
-              rows={4}
-              placeholder="Leave a note (optional)"
-              value={donationForm.note}
-              onChange={(event) =>
-                setDonationForm((prev) => ({ ...prev, note: event.target.value }))
-              }
-              className="w-full rounded-lg border border-gray-300 bg-[#FAFAFA] px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/30"
-            />
-
-            <button
-              type="submit"
-              disabled={donationDisabled || createDonationMutation.isPending}
-              className="mt-auto w-full rounded-lg bg-primary py-3 font-medium text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {donationDisabled
-                ? "Donations are currently disabled"
-                : createDonationMutation.isPending
-                  ? "Processing..."
-                  : "Proceed to Donate"}
-            </button>
-          </form>
-
-          {donationNotice ? (
-            <p className="mt-3 text-sm text-green-600">{donationNotice}</p>
-          ) : null}
-
-          {createDonationMutation.error ? (
-            <p className="mt-3 text-sm text-red-500">
-              {getApiErrorMessage(
-                createDonationMutation.error,
-                "We could not create this donation right now.",
-              )}
-            </p>
-          ) : null}
-
-          <p className="mt-3 text-xs text-gray-500">
-            {settings?.donationLink
-              ? "You will be redirected to the configured payment link after submission."
-              : "A payment link can be configured from the admin settings."}
-          </p>
-        </div>
-
-        <div className="rounded-2xl border border-gray-100 bg-white p-6">
-          <h2 className="mb-3 text-lg font-semibold">Become a Sponsor / Partner</h2>
-          <p className="mb-4 text-sm text-gray-600">
-            Organizations and individuals can support specific programs, events,
-            or facilities. Tell us how you would like to partner with us.
-          </p>
-
-          <form onSubmit={handleSponsorSubmit} className="space-y-3">
-            <input
-              type="text"
-              placeholder="Your name"
-              required
-              value={sponsorForm.name}
-              onChange={(event) =>
-                setSponsorForm((prev) => ({ ...prev, name: event.target.value }))
-              }
-              className="w-full rounded-lg border border-gray-300 bg-[#FAFAFA] px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/30"
-            />
-
-            <input
-              type="email"
-              placeholder="Email address"
-              required
-              value={sponsorForm.email}
-              onChange={(event) =>
-                setSponsorForm((prev) => ({ ...prev, email: event.target.value }))
-              }
-              className="w-full rounded-lg border border-gray-300 bg-[#FAFAFA] px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/30"
-            />
-
-            <input
-              type="text"
-              placeholder="Organization (optional)"
-              value={sponsorForm.organization}
-              onChange={(event) =>
-                setSponsorForm((prev) => ({
-                  ...prev,
-                  organization: event.target.value,
-                }))
-              }
-              className="w-full rounded-lg border border-gray-300 bg-[#FAFAFA] px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/30"
-            />
-
-            <textarea
-              rows={4}
-              placeholder="How would you like to sponsor or partner with us?"
-              required
-              value={sponsorForm.message}
-              onChange={(event) =>
-                setSponsorForm((prev) => ({ ...prev, message: event.target.value }))
-              }
-              className="w-full rounded-lg border border-gray-300 bg-[#FAFAFA] px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/30"
-            />
-
-            <button
-              type="submit"
-              disabled={createSponsorshipMutation.isPending}
-              className="w-full rounded-lg bg-primary py-3 font-medium text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {createSponsorshipMutation.isPending
-                ? "Submitting..."
-                : "Submit Sponsorship Request"}
-            </button>
-          </form>
-
-          {sponsorshipNotice ? (
-            <p className="mt-3 text-sm text-green-600">{sponsorshipNotice}</p>
-          ) : null}
-
-          {createSponsorshipMutation.error ? (
-            <p className="mt-3 text-sm text-red-500">
-              {getApiErrorMessage(
-                createSponsorshipMutation.error,
-                "We could not submit your sponsorship request.",
-              )}
-            </p>
-          ) : null}
+          <div className="rounded-xl bg-gray-50 p-4">
+            <p className="text-xs uppercase text-gray-500">Account Name</p>
+            <div className="mt-1 flex items-center justify-between">
+              <p className="text-lg font-semibold">
+                {settings?.accountName || "Not configured"}
+              </p>
+              {settings?.accountName &&
+                renderCopyButton(settings.accountName, "name")}
+            </div>
+          </div>
         </div>
       </section>
 
+      {/* Sponsorship CTA */}
+      {/* Sponsorship CTA */}
+<section className="mx-auto mb-16 w-[92%] rounded-2xl border border-gray-100 bg-white p-6 sm:w-[90%] md:w-[80%]">
+  <h2 className="text-lg font-semibold">Become a Sponsor / Partner</h2>
+  <p className="mt-2 text-sm text-gray-600 max-w-2xl">
+    Interested in sponsoring programs, events, or infrastructure? Reach out to the alumni
+    team directly to discuss partnership opportunities.
+  </p>
+
+  {/* Contact Cards */}
+  <div className="mt-5 grid gap-4 sm:grid-cols-2">
+    {/* Email */}
+    {settings?.contactEmail && (
+      <div className="rounded-xl bg-gray-50 p-4">
+        <p className="text-xs uppercase tracking-wide text-gray-500">Email</p>
+        <div className="mt-1 flex items-center justify-between">
+          <p className="text-sm font-medium break-all">
+            {settings.contactEmail}
+          </p>
+          <button
+            onClick={() => handleCopy(settings.contactEmail, "email")}
+            className="ml-2 inline-flex items-center gap-1 text-xs text-primary hover:underline"
+          >
+            {copiedField === "email" ? <Check size={14} /> : <Copy size={14} />}
+            {copiedField === "email" ? "Copied" : "Copy"}
+          </button>
+        </div>
+      </div>
+    )}
+
+    {/* Phone */}
+    {settings?.contactPhone && (
+      <div className="rounded-xl bg-gray-50 p-4">
+        <p className="text-xs uppercase tracking-wide text-gray-500">Phone</p>
+        <div className="mt-1 flex items-center justify-between">
+          <p className="text-sm font-medium">
+            {settings.contactPhone}
+          </p>
+          <button
+            onClick={() => handleCopy(settings.contactPhone, "phone")}
+            className="ml-2 inline-flex items-center gap-1 text-xs text-primary hover:underline"
+          >
+            {copiedField === "phone" ? <Check size={14} /> : <Copy size={14} />}
+            {copiedField === "phone" ? "Copied" : "Copy"}
+          </button>
+        </div>
+      </div>
+    )}
+  </div>
+
+  {/* Action Buttons */}
+  <div className="mt-6 flex flex-col sm:flex-row gap-4">
+    {settings?.contactEmail && (
+      <a
+        href={`mailto:${settings.contactEmail}`}
+        className="flex items-center justify-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm text-white hover:opacity-90"
+      >
+        <Mail size={16} />
+        Send Email
+      </a>
+    )}
+
+    {settings?.contactPhone && (
+      <a
+        href={`tel:${settings.contactPhone}`}
+        className="flex items-center justify-center gap-2 rounded-full border border-gray-300 px-5 py-2.5 text-sm hover:bg-gray-50"
+      >
+        <Phone size={16} />
+        Call Now
+      </a>
+    )}
+  </div>
+</section>
+
+      {/* Footer CTA */}
       <section className="w-full border-t border-gray-100 bg-white py-12 text-center">
         <p className="text-sm text-gray-600">
-          All donations and sponsorships go directly towards alumni and
-          departmental development initiatives.
+          Every contribution makes a lasting impact on the next generation of architects.
         </p>
         <Link
           href="/contact"

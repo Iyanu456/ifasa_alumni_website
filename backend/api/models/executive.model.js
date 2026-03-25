@@ -22,7 +22,7 @@ const executiveSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      required: true,
+      //required: true,
       trim: true,
       maxlength: 120,
     },
@@ -34,7 +34,7 @@ const executiveSchema = new mongoose.Schema(
     },
     title: {
       type: String,
-      required: true,
+      //required: true,
       trim: true,
       maxlength: 160,
     },

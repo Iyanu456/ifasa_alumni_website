@@ -159,7 +159,7 @@ export default function SettingsTab() {
                 <span className={`absolute top-1 h-4 w-4 rounded-full bg-white transition ${settings.allowRegistrations ? "left-7" : "left-1"}`} />
               </button>
             </div>
-            <div className="flex items-center justify-between">
+            {/*<div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium">Enable Donations</p>
                 <p className="text-xs text-gray-500">Allow alumni to donate on the platform.</p>
@@ -167,7 +167,7 @@ export default function SettingsTab() {
               <button onClick={() => handleToggle("enableDonations")} className={`relative h-6 w-12 rounded-full transition ${settings.enableDonations ? "bg-primary" : "bg-gray-300"}`}>
                 <span className={`absolute top-1 h-4 w-4 rounded-full bg-white transition ${settings.enableDonations ? "left-7" : "left-1"}`} />
               </button>
-            </div>
+            </div>*/}
           </div>
 
           <div className="mb-[5em] flex w-full justify-end">

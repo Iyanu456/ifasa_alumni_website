@@ -55,8 +55,8 @@ export const listPublicAlumni = async (query) =>
     model: User,
     query,
     filter: buildAlumniFilter({ query }),
-    searchFields: ["fullName", "currentRole", "location", "specialization"],
-    allowedSortFields: ["fullName", "graduationYear", "createdAt"],
+    searchFields: ["fullName", "currentRole", "location", "specialization", "nickname"],
+    allowedSortFields: ["fullName", "graduationYear", "createdAt", "nickname"],
     defaultSortField: "createdAt",
     defaultOrder: "desc",
   });

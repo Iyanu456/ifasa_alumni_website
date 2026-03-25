@@ -25,7 +25,7 @@ const tabComponents: Record<string, ComponentType> = {
   opportunities: OpportunitiesTab,
   news: NewsTab,
   gallery: GalleryTab,
-  donations: DonationsTab,
+  //donations: DonationsTab,
   settings: SettingsTab,
 };
 

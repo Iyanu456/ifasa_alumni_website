@@ -24,6 +24,7 @@ export default function ExecutivesTab() {
     useAppMutations();
   const [isOpen, setIsOpen] = useState(false);
   const [editingExecutive, setEditingExecutive] = useState<Executive | null>(null);
+  const [validationMessage, setValidationMessage] = useState("");
   const [form, setForm] = useState<ExecutiveFormBody>(initialForm);
   const [image, setImage] = useState<File | null>(null);
 
@@ -63,6 +64,24 @@ export default function ExecutivesTab() {
   };
 
   const handleSubmit = async () => {
+    // 🔒 INPUT VALIDATION
+  if (!form.name.trim()) {
+    setValidationMessage("Executive name is required.");
+    return;
+  }
+
+  if (!form.email.trim()) {
+    setValidationMessage("Executive email is required.");
+    return;
+  }
+
+  if (!form.position) {
+    setValidationMessage("Executive position is required.");
+    return;
+  }
+
+  setValidationMessage("");
+
     if (editingExecutive) {
       await updateExecutiveMutation.mutateAsync({
         id: editingExecutive._id,
@@ -119,9 +138,9 @@ export default function ExecutivesTab() {
                   <p className="text-sm text-gray-500">{executive.position}</p>
                 </div>
               </div>
-              <span className="rounded-full bg-gray-100 px-2 py-1 text-xs text-gray-600">
+              {/*<span className="rounded-full bg-gray-100 px-2 py-1 text-xs text-gray-600">
                 #{executive.sortOrder || 0}
-              </span>
+              </span>*/}
             </div>
 
             <p className="mt-4 text-sm font-medium text-primary">{executive.role}</p>
@@ -213,6 +232,7 @@ export default function ExecutivesTab() {
                 />
                 Publish on public pages
               </label>
+              {validationMessage ? <p className="text-sm text-red-600">{validationMessage}</p> : null}
 
               
             </div>

@@ -18,6 +18,7 @@ import {
 
 const buildUserUpdatePayload = (body) => ({
   fullName: body.fullName,
+  nickname: body.nickname,
   phone: body.phone,
   graduationYear: body.graduationYear,
   degree: body.degree,
@@ -39,6 +40,7 @@ const buildUserUpdatePayload = (body) => ({
 
 const buildSelfProfilePayload = (body) => ({
   fullName: body.fullName,
+  nickname: body.nickname,
   phone: body.phone,
   graduationYear: body.graduationYear,
   degree: body.degree,

@@ -84,7 +84,7 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <StatCard
           label="Registered Alumni"
           value={dashboard.metrics.registeredAlumni.toLocaleString()}
@@ -100,11 +100,11 @@ export default function AdminDashboard() {
           value={dashboard.metrics.activeOpportunities.toLocaleString()}
           icon={Briefcase}
         />
-        <StatCard
+        {/*<StatCard
           label="Donations Received"
           value={formatCurrency(dashboard.metrics.donationsReceived)}
           icon={DollarSign}
-        />
+        />*/}
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">

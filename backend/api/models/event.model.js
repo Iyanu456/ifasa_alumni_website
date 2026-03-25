@@ -44,7 +44,7 @@ const eventSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
-      maxlength: 4000,
+      maxlength: 10000,
     },
     coverImageUrl: {
       type: String,
